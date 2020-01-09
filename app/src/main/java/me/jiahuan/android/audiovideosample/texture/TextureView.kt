@@ -1,14 +1,14 @@
 package me.jiahuan.android.audiovideosample.texture
 
 import android.content.Context
-import android.opengl.GLSurfaceView
 import android.util.AttributeSet
+import me.jiahuan.android.audiovideosample.egl.EGLSurfaceView
 
 /**
  * 摄像头预览View
  */
 class TextureView(context: Context, attrs: AttributeSet? = null) :
-    GLSurfaceView(context, attrs) {
+    EGLSurfaceView(context, attrs) {
 
     init {
         initialize()
@@ -19,8 +19,8 @@ class TextureView(context: Context, attrs: AttributeSet? = null) :
      */
     private fun initialize() {
         // GLES20
-        setEGLContextClientVersion(2)
+//        setEGLContextClientVersion(2)
         // 设置Render
-        setRenderer(TextureRender(context))
+        setRenderer(TextureRenderer(context))
     }
 }

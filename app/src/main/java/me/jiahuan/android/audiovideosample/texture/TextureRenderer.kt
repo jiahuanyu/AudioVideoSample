@@ -3,18 +3,16 @@ package me.jiahuan.android.audiovideosample.texture
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
-import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.util.Log
 import me.jiahuan.android.audiovideosample.R
+import me.jiahuan.android.audiovideosample.egl.EGLRenderer
 import me.jiahuan.android.audiovideosample.util.ShaderUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
 
-class TextureRender(private val context: Context) : GLSurfaceView.Renderer {
+class TextureRenderer(private val context: Context) : EGLRenderer {
 
     // 顶点坐标，三角形带绘制，左下角开始
     private val vertexData = floatArrayOf(
@@ -83,7 +81,7 @@ class TextureRender(private val context: Context) : GLSurfaceView.Renderer {
 
     }
 
-    override fun onDrawFrame(gl: GL10?) {
+    override fun onDrawFrame() {
         // 必须首行
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId)
 
@@ -116,7 +114,7 @@ class TextureRender(private val context: Context) : GLSurfaceView.Renderer {
         fboRender.onDraw(textureId)
     }
 
-    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+    override fun onSurfaceChanged(width: Int, height: Int) {
         fboRender.onChanged(width, height)
         GLES20.glViewport(0, 0, width, height)
 
@@ -147,7 +145,7 @@ class TextureRender(private val context: Context) : GLSurfaceView.Renderer {
 //        Matrix.rotateM(matrix, 0, 180f, 1f, 0f, 0f)
     }
 
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+    override fun onSurfaceCreated() {
         fboRender.onCreate()
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)

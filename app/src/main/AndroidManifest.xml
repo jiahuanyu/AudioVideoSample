@@ -31,7 +31,7 @@
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <activity
-            android:name=".texture.TexutureActivity"
+            android:name=".texture.TextureActivity"
             android:exported="false" />
     </application>
 

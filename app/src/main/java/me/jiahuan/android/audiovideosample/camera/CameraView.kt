@@ -2,14 +2,14 @@ package me.jiahuan.android.audiovideosample.camera
 
 import android.content.Context
 import android.graphics.SurfaceTexture
-import android.opengl.GLSurfaceView
 import android.util.AttributeSet
+import me.jiahuan.android.audiovideosample.egl.EGLSurfaceView
 
 /**
  * 摄像头预览View
  */
-class CameraView(context: Context, attrs: AttributeSet? = null) :
-    GLSurfaceView(context, attrs) {
+class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+    EGLSurfaceView(context, attrs) {
 
     private val camera = Camera()
 
@@ -21,8 +21,6 @@ class CameraView(context: Context, attrs: AttributeSet? = null) :
      * 初始化
      */
     private fun initialize() {
-        // GLES20
-        setEGLContextClientVersion(2)
         // 设置Render
         val cameraRender = CameraRender(context)
         setRenderer(cameraRender)
