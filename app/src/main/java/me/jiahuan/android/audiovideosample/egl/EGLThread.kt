@@ -4,20 +4,22 @@ import android.view.Surface
 import javax.microedition.khronos.egl.EGLContext
 
 
-class EGLThread : Thread() {
-    companion object {
-        const val RENDERMODE_WHEN_DIRTY = 0
-        const val RENDERMODE_CONTINUOUSLY = 0
-    }
-
-    var surface: Surface? = null
+open class EGLThread : Thread() {
+    // 绘制的Surface
+    lateinit var surface: Surface
+    // 共享的eglContext
     var eglContext: EGLContext? = null
+    //
     var isCreated = false
+    //
     var isChanged = false
+    // 渲染器
     var eglRenderer: EGLRenderer? = null
+    // 渲染宽度
     var width: Int = 0
+    // 渲染高度
     var height: Int = 0
-    var renderMode = RENDERMODE_CONTINUOUSLY
+    // 
     var isExit = false
 
     private val eglHelper by lazy {
@@ -25,10 +27,7 @@ class EGLThread : Thread() {
     }
 
     override fun run() {
-        if (surface == null) {
-            throw RuntimeException("Surface must not be null")
-        }
-        eglHelper.initialize(surface!!, eglContext)
+        eglHelper.initialize(surface, eglContext)
 
         while (true) {
             if (isExit) {
@@ -66,7 +65,7 @@ class EGLThread : Thread() {
         eglHelper.release()
     }
 
-    fun getEGLContext():EGLContext? {
+    fun getEGLContext(): EGLContext? {
         return eglHelper.getEGLContext()
     }
 }

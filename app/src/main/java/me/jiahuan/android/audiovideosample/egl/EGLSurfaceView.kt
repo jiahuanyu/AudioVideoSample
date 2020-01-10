@@ -7,12 +7,19 @@ import android.view.SurfaceView
 import javax.microedition.khronos.egl.EGLContext
 
 
-open class EGLSurfaceView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
+open class EGLSurfaceView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) :
     SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback {
 
     private val eglThread by lazy {
         EGLThread()
     }
+
+    var surfaceWidth: Int = 0
+    var surfaceHeight: Int = 0
 
     init {
         initialize()
@@ -23,6 +30,8 @@ open class EGLSurfaceView @JvmOverloads constructor(context: Context, attrs: Att
     }
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
+        this.surfaceWidth = width
+        this.surfaceHeight = height
         eglThread.isChanged = true
         eglThread.width = width
         eglThread.height = height
@@ -33,7 +42,9 @@ open class EGLSurfaceView @JvmOverloads constructor(context: Context, attrs: Att
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
-        eglThread.surface = holder?.surface
+        if (holder != null) {
+            eglThread.surface = holder.surface
+        }
         eglThread.isCreated = true
         eglThread.start()
     }
@@ -41,10 +52,6 @@ open class EGLSurfaceView @JvmOverloads constructor(context: Context, attrs: Att
 
     fun setRenderer(elgRenderer: EGLRenderer) {
         eglThread.eglRenderer = elgRenderer
-    }
-
-    fun setRenderMode(renderMode: Int) {
-        eglThread.renderMode = renderMode
     }
 
     fun getEGLContext(): EGLContext? {

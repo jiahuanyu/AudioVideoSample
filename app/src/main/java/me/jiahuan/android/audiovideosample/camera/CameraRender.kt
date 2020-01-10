@@ -231,8 +231,8 @@ class CameraRender(private val context: Context) : EGLRenderer,
 //            Log.e("ywl5320", "fbo success")
 //        }
 
+//        GLES20.glBindTexture(GLES20.GL_FRAMEBUFFER, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-        GLES20.glBindTexture(GLES20.GL_FRAMEBUFFER, 0)
 
         // 扩展纹理  相机纹理
         val exTextureIds = IntArray(1)
@@ -265,7 +265,7 @@ class CameraRender(private val context: Context) : EGLRenderer,
         surfaceTexture = SurfaceTexture(cameraTextureId)
         surfaceTexture.setOnFrameAvailableListener(this)
 
-        onSurfaceCreateListener?.onSurfaceCreated(surfaceTexture)
+        onSurfaceCreateListener?.onSurfaceCreated(surfaceTexture, cameraTextureId)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
@@ -278,6 +278,6 @@ class CameraRender(private val context: Context) : EGLRenderer,
     var onSurfaceCreateListener: OnSurfaceCreateListener? = null
 
     interface OnSurfaceCreateListener {
-        fun onSurfaceCreated(surfaceTexture: SurfaceTexture)
+        fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int)
     }
 }

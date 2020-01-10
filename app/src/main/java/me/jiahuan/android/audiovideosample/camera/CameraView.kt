@@ -13,6 +13,8 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     private val camera = Camera()
 
+    var textureId: Int = 0
+
     init {
         initialize()
     }
@@ -26,11 +28,12 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         setRenderer(cameraRender)
 
         cameraRender.onSurfaceCreateListener = object : CameraRender.OnSurfaceCreateListener {
-            override fun onSurfaceCreated(surfaceTexture: SurfaceTexture) {
+            override fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int) {
                 camera.initCamera(
                     surfaceTexture,
                     android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK
                 )
+                this@CameraView.textureId = textureId
             }
         }
     }
