@@ -60,9 +60,12 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
     private var umatrix = 0
     private val matrix = FloatArray(16)
 
+
+    private var callback: Callback? = null
+
     private lateinit var surfaceTexture: SurfaceTexture
 
-    private val cameraFBORender by lazy {
+    private val cameraRender by lazy {
         CameraRenderer(context)
     }
 
@@ -92,9 +95,6 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
 
         // 指针指向内存起始位置
         fragmentBuffer.position(0)
-
-        // 初始化矩阵
-        Matrix.setIdentityM(matrix, 0)
     }
 
     override fun onDrawFrame() {
@@ -127,19 +127,33 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
-        cameraFBORender.onDrawFrame(fboBindTextureId)
+        cameraRender.onDrawFrame(fboBindTextureId)
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
-        cameraFBORender.onSurfaceChanged(width, height)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, fboBindTextureId)
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D,
+            0,
+            GLES20.GL_RGBA,
+            width,
+            height,
+            0,
+            GLES20.GL_RGBA,
+            GLES20.GL_UNSIGNED_BYTE,
+            null
+        )
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+        cameraRender.onSurfaceChanged(width, height)
 
         GLES20.glViewport(0, 0, width, height)
-
+        Matrix.setIdentityM(matrix, 0)
         Matrix.rotateM(matrix, 0, 90f, 0f, 0f, 1f)
     }
 
-    override fun onSurfaceCreated(width: Int, height: Int) {
-        cameraFBORender.onSurfaceCreated(width, height)
+    override fun onSurfaceCreated() {
+        cameraRender.onSurfaceCreated()
         // 顶点Shader源码
         val vertexSource =
             ShaderUtils.getRawResourceContent(context, R.raw.vertex_camera_shader)
@@ -211,8 +225,8 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
             GLES20.GL_TEXTURE_2D,
             0,
             GLES20.GL_RGBA,
-            width,
-            height,
+            0,
+            0,
             0,
             GLES20.GL_RGBA,
             GLES20.GL_UNSIGNED_BYTE,
@@ -264,20 +278,21 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         surfaceTexture = SurfaceTexture(cameraTextureId)
         surfaceTexture.setOnFrameAvailableListener(this)
 
-        onSurfaceCreateListener?.onSurfaceCreated(surfaceTexture, fboBindTextureId)
+        callback?.onSurfaceCreated(surfaceTexture, fboBindTextureId)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-        // 录制
 
     }
 
+    fun setCallback(callback: Callback) {
+        this.callback = callback
+    }
 
-    var onSurfaceCreateListener: OnSurfaceCreateListener? = null
 
-    interface OnSurfaceCreateListener {
+    interface Callback {
         fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int)
     }
 }

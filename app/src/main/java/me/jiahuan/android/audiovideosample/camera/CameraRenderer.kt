@@ -113,7 +113,7 @@ class CameraRenderer(private val context: Context) {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
     }
 
-    fun onSurfaceCreated(width: Int, height: Int) {
+    fun onSurfaceCreated() {
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
         val fragmentSource = ShaderUtils.getRawResourceContent(context, R.raw.fragment_shader)

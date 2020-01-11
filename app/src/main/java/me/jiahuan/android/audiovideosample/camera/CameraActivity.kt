@@ -8,19 +8,22 @@ import me.jiahuan.android.audiovideosample.encoder.MediaEncoder
 import java.io.File
 
 class CameraActivity : AppCompatActivity() {
+
+
+    private var mediaEncoder = MediaEncoder()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
-        var mediaEncoder = MediaEncoder()
 
         id_start_record_button.setOnClickListener {
             mediaEncoder = MediaEncoder()
             mediaEncoder.start(
                 this,
-                id_camera_view.surfaceWidth,
-                id_camera_view.surfaceHeight,
+                id_camera_view.getSurfaceWidth(),
+                id_camera_view.getSurfaceHeight(),
                 id_camera_view.getEGLContext(),
-                id_camera_view.textureId,
+                id_camera_view.getTextureId(),
                 File("/sdcard/test.mp4")
             )
         }
@@ -39,5 +42,10 @@ class CameraActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         id_camera_view.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaEncoder.stop()
     }
 }

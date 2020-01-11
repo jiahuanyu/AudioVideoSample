@@ -15,7 +15,7 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     private var hasSurfaceCreated = false
 
-    var textureId: Int = 0
+    private var textureId = 0
 
     private lateinit var surfaceTexture: SurfaceTexture
 
@@ -28,18 +28,21 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
      */
     private fun initialize() {
         // 设置Render
-        val cameraDBORenderer = CameraFBORenderer(context)
-        setRenderer(cameraDBORenderer)
+        val cameraFBORenderer = CameraFBORenderer(context)
+        setRenderer(cameraFBORenderer)
 
-        cameraDBORenderer.onSurfaceCreateListener =
-            object : CameraFBORenderer.OnSurfaceCreateListener {
-                override fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int) {
-                    hasSurfaceCreated = true
-                    this@CameraView.surfaceTexture = surfaceTexture
-                    this@CameraView.textureId = textureId
-                    onResume()
-                }
+        cameraFBORenderer.setCallback(object : CameraFBORenderer.Callback {
+            override fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int) {
+                hasSurfaceCreated = true
+                this@CameraView.surfaceTexture = surfaceTexture
+                this@CameraView.textureId = textureId
+                onResume()
             }
+        })
+    }
+
+    fun getTextureId(): Int {
+        return textureId
     }
 
     fun onResume() {
@@ -53,5 +56,6 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     fun onPause() {
         camera.stopPreview()
+        hasSurfaceCreated = false
     }
 }

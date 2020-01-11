@@ -14,12 +14,10 @@ open class EGLSurfaceView @JvmOverloads constructor(
 ) :
     SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback {
 
-    private val eglThread by lazy {
-        EGLThread()
-    }
+    private var eglThread = EGLThread()
 
-    var surfaceWidth: Int = 0
-    var surfaceHeight: Int = 0
+    private var surfaceWidth = 0
+    private var surfaceHeight = 0
 
     init {
         initialize()
@@ -40,12 +38,29 @@ open class EGLSurfaceView @JvmOverloads constructor(
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
+        if (eglThread.isExist()) {
+            val oldRenderer = eglThread.getRenderer()
+            eglThread = EGLThread()
+            if (oldRenderer != null) {
+                setRenderer(oldRenderer)
+            }
+        }
         eglThread.initialize(holder?.surface!!, null)
         eglThread.start()
     }
 
+    fun getSurfaceWidth(): Int {
+        return surfaceWidth
+    }
+
+    fun getSurfaceHeight(): Int {
+        return surfaceHeight
+    }
 
     fun setRenderer(elgRenderer: EGLRenderer) {
+        if (eglThread.isExist()) {
+            eglThread = EGLThread()
+        }
         eglThread.setRenderer(elgRenderer)
     }
 

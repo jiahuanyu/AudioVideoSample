@@ -16,8 +16,8 @@ open class EGLThread : Thread() {
     private lateinit var surface: Surface
     // 共享的eglContext
     private var eglContext: EGLContext? = null
-    //
-    private var isCreated = false
+    // 创建
+    private var firstCreate = false
     // Surface大小变化
     private var sizeChanged = false
     // 渲染器
@@ -42,16 +42,13 @@ open class EGLThread : Thread() {
                 break
             }
 
-            if (sizeChanged) {
-                if (isCreated) {
-                    Log.d(
-                        TAG,
-                        "onSurfaceCreated surfaceWidth = $surfaceWidth, surfaceHeight = $surfaceHeight"
-                    )
-                    onSurfaceCreated()
-                    isCreated = false
-                }
+            if (firstCreate) {
+                Log.d(TAG, "onSurfaceCreate")
+                onSurfaceCreated()
+                firstCreate = false
+            }
 
+            if (sizeChanged) {
                 Log.d(
                     TAG,
                     "onSurfaceChanged surfaceWidth = $surfaceWidth, surfaceHeight = $surfaceHeight"
@@ -67,7 +64,7 @@ open class EGLThread : Thread() {
 
 
     private fun onSurfaceCreated() {
-        eglRenderer?.onSurfaceCreated(this.surfaceWidth, this.surfaceHeight)
+        eglRenderer?.onSurfaceCreated()
     }
 
     private fun onSurfaceChanged() {
@@ -92,7 +89,7 @@ open class EGLThread : Thread() {
      * 初始化
      */
     fun initialize(surface: Surface, eglContext: EGLContext?) {
-        isCreated = true
+        firstCreate = true
         this.surface = surface
         this.eglContext = eglContext
     }
@@ -113,10 +110,23 @@ open class EGLThread : Thread() {
         this.eglRenderer = renderer
     }
 
+
+    fun getRenderer(): EGLRenderer? {
+        return this.eglRenderer
+    }
+
     /**
      * 退出
      */
     fun exist() {
         toExist = true
+    }
+
+
+    /**
+     * 是否退出
+     */
+    fun isExist(): Boolean {
+        return toExist
     }
 }

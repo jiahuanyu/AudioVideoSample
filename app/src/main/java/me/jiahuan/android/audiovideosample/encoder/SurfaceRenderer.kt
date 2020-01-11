@@ -68,7 +68,7 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
         fragmentBuffer.position(0)
     }
 
-    override fun onSurfaceCreated(width: Int, height: Int) {
+    override fun onSurfaceCreated() {
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
         val fragmentSource =

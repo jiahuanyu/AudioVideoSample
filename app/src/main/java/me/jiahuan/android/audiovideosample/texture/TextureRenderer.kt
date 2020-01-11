@@ -68,7 +68,7 @@ class TextureRenderer(private val context: Context) {
     }
 
 
-    fun onSurfaceCreate(width: Int, height: Int) {
+    fun onSurfaceCreate() {
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
         val fragmentSource = ShaderUtils.getRawResourceContent(context, R.raw.fragment_shader)

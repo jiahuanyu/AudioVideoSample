@@ -85,7 +85,9 @@ class MediaEncoder {
 
     fun stop() {
         isMediaEncodeToStop = true
-        surfaceDrawThread.exist()
+        if (::surfaceDrawThread.isInitialized) {
+            surfaceDrawThread.exist()
+        }
     }
 
     /**

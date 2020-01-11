@@ -3,7 +3,7 @@ package me.jiahuan.android.audiovideosample.egl
 import android.opengl.GLES20
 
 class OpenglESRenderer : EGLRenderer {
-    override fun onSurfaceCreated(width: Int, height: Int) {
+    override fun onSurfaceCreated() {
 
     }
 

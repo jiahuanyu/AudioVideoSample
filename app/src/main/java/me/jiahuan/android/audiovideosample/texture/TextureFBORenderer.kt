@@ -116,12 +116,26 @@ class TextureFBORenderer(private val context: Context) : EGLRenderer {
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D,
+            0,
+            GLES20.GL_RGBA,
+            width,
+            height,
+            0,
+            GLES20.GL_RGBA,
+            GLES20.GL_UNSIGNED_BYTE,
+            null
+        )
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
         fboRender.onSurfaceChanged(width, height)
         GLES20.glViewport(0, 0, width, height)
     }
 
-    override fun onSurfaceCreated(width: Int, height: Int) {
-        fboRender.onSurfaceCreate(width, height)
+    override fun onSurfaceCreated() {
+        fboRender.onSurfaceCreate()
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
         val fragmentSource = ShaderUtils.getRawResourceContent(context, R.raw.fragment_shader)
@@ -180,8 +194,8 @@ class TextureFBORenderer(private val context: Context) : EGLRenderer {
             GLES20.GL_TEXTURE_2D,
             0,
             GLES20.GL_RGBA,
-            width,
-            height,
+            0,
+            0,
             0,
             GLES20.GL_RGBA,
             GLES20.GL_UNSIGNED_BYTE,
