@@ -19,6 +19,6 @@ class TextureView(context: Context, attrs: AttributeSet? = null) :
      */
     private fun initialize() {
         // 设置Render
-        setRenderer(TextureRenderer(context))
+        setRenderer(TextureFBORenderer(context))
     }
 }

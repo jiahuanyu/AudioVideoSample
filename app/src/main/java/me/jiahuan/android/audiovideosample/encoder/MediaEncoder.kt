@@ -73,7 +73,7 @@ class MediaEncoder {
 
     fun stop() {
         isMediaEncodeToStop = true
-        surfaceDrawThread.isExit = true
+        surfaceDrawThread.exist()
     }
 
     private fun initMediaMuxer(file: File) {
@@ -108,13 +108,9 @@ class MediaEncoder {
 
         // 创建EGLThread需要的Surface EGLContext
         surfaceDrawThread = SurfaceDrawThread()
-        surfaceDrawThread.surface = surface
-        surfaceDrawThread.width = width
-        surfaceDrawThread.height = height
-        surfaceDrawThread.eglContext = eglContext
-        surfaceDrawThread.isCreated = true
-        surfaceDrawThread.isChanged = true
-        surfaceDrawThread.eglRenderer = SurfaceRenderer(context, textureId)
+        surfaceDrawThread.initialize(surface, eglContext)
+        surfaceDrawThread.setSurfaceWidthAndHeight(width, height)
+        surfaceDrawThread.setRenderer(SurfaceRenderer(context, textureId))
 
         // 视频编码
         videoEncoderThread = VideoEncoderThread()
@@ -246,8 +242,10 @@ class MediaEncoder {
                 val buffer = pcmData.poll()
 
                 if (isMediaMuxerStated && buffer != null && buffer.isNotEmpty()) {
+                    Log.d(TAG, "read len = ${buffer.size}")
+
                     val inputBufferIndex = audioCodec.dequeueInputBuffer(0)
-                    if (inputBufferIndex > 0) {
+                    if (inputBufferIndex >= 0) {
                         val byteBuffer = audioCodec.getInputBuffer(inputBufferIndex)
                         if (byteBuffer != null) {
                             byteBuffer.clear()
@@ -307,7 +305,6 @@ class MediaEncoder {
         override fun run() {
             audioRecord.startRecording()
 
-            val audioData = ByteArray(bufferSizeInBytes)
 
             while (true) {
                 if (isMediaEncodeToStop) {
@@ -315,9 +312,11 @@ class MediaEncoder {
                     audioRecord.release()
                     break
                 }
+                val audioData = ByteArray(bufferSizeInBytes)
                 val len = audioRecord.read(audioData, 0, bufferSizeInBytes)
                 if (len > 0) {
-                    pcmData.add(audioData.copyOfRange(0, len))
+                    Log.d(TAG, "len = $len")
+                    pcmData.offer(audioData.copyOfRange(0, len))
                 }
             }
         }

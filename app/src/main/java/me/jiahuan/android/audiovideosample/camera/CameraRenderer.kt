@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 
-class CameraFBORender(private val context: Context) {
+class CameraRenderer(private val context: Context) {
 
     companion object {
         private const val TAG = "CameraRender"
@@ -71,17 +71,25 @@ class CameraFBORender(private val context: Context) {
             .asFloatBuffer()
             .put(fragmentData)
 
-        // 指针指向内存起始位置
+        // 指针指向内存起始位置 1234
+
         fragmentBuffer.position(0)
     }
 
 
-    fun onChanged(width: Int, height: Int) {
+    fun onSurfaceChanged(width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
     }
 
 
-    fun onDraw(textureId: Int) {
+    fun onDrawFrame(textureId: Int) {
+
+        //清空颜色
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        //设置背景颜色
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+
+
         // 程序生效
         GLES20.glUseProgram(programId)
 
@@ -101,11 +109,11 @@ class CameraFBORender(private val context: Context) {
         // 绘制
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
     }
 
-    fun onCreated() {
+    fun onSurfaceCreated(width: Int, height: Int) {
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
         val fragmentSource = ShaderUtils.getRawResourceContent(context, R.raw.fragment_shader)

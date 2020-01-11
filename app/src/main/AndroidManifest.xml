@@ -29,12 +29,10 @@
 
         <activity
             android:name=".camera.CameraActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:exported="false" />
 
         <activity
             android:name=".texture.TextureActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="false" />
     </application>
 

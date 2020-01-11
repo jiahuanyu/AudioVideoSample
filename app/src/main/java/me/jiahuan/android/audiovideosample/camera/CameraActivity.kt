@@ -17,10 +17,10 @@ class CameraActivity : AppCompatActivity() {
             mediaEncoder = MediaEncoder()
             mediaEncoder.start(
                 this,
-                cameraView.surfaceWidth,
-                cameraView.surfaceHeight,
-                cameraView.getEGLContext(),
-                cameraView.textureId,
+                id_camera_view.surfaceWidth,
+                id_camera_view.surfaceHeight,
+                id_camera_view.getEGLContext(),
+                id_camera_view.textureId,
                 File("/sdcard/test.mp4")
             )
         }
@@ -29,5 +29,15 @@ class CameraActivity : AppCompatActivity() {
         id_stop_record_button.setOnClickListener {
             mediaEncoder.stop()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        id_camera_view.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        id_camera_view.onPause()
     }
 }

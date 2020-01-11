@@ -68,7 +68,7 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
         fragmentBuffer.position(0)
     }
 
-    override fun onSurfaceCreated() {
+    override fun onSurfaceCreated(width: Int, height: Int) {
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
         val fragmentSource =
@@ -110,6 +110,12 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
     }
 
     override fun onDrawFrame() {
+
+        //清空颜色
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        //设置背景颜色
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+
         // 程序生效
         GLES20.glUseProgram(programId)
 
@@ -128,7 +134,7 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
         // 绘制
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
     }
 }

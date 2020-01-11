@@ -32,26 +32,21 @@ open class EGLSurfaceView @JvmOverloads constructor(
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
         this.surfaceWidth = width
         this.surfaceHeight = height
-        eglThread.isChanged = true
-        eglThread.width = width
-        eglThread.height = height
+        eglThread.setSurfaceWidthAndHeight(width, height)
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
-        eglThread.isExit = true
+        eglThread.exist()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
-        if (holder != null) {
-            eglThread.surface = holder.surface
-        }
-        eglThread.isCreated = true
+        eglThread.initialize(holder?.surface!!, null)
         eglThread.start()
     }
 
 
     fun setRenderer(elgRenderer: EGLRenderer) {
-        eglThread.eglRenderer = elgRenderer
+        eglThread.setRenderer(elgRenderer)
     }
 
     fun getEGLContext(): EGLContext? {
