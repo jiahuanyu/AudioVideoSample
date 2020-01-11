@@ -5,21 +5,23 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_camera.*
 import me.jiahuan.android.audiovideosample.R
 import me.jiahuan.android.audiovideosample.encoder.MediaEncoder
+import java.io.File
 
 class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
-
-        val mediaEncoder = MediaEncoder()
+        var mediaEncoder = MediaEncoder()
 
         id_start_record_button.setOnClickListener {
+            mediaEncoder = MediaEncoder()
             mediaEncoder.start(
                 this,
                 cameraView.surfaceWidth,
                 cameraView.surfaceHeight,
                 cameraView.getEGLContext(),
-                cameraView.textureId
+                cameraView.textureId,
+                File("/sdcard/test.mp4")
             )
         }
 

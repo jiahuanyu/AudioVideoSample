@@ -14,6 +14,10 @@ import java.nio.FloatBuffer
 
 class TextureRenderer(private val context: Context) : EGLRenderer {
 
+    companion object {
+        private const val TAG = "TextureRenderer"
+    }
+
     // 顶点坐标，三角形带绘制，左下角开始
     private val vertexData = floatArrayOf(
         -1f, -1f,
@@ -82,11 +86,9 @@ class TextureRenderer(private val context: Context) : EGLRenderer {
     }
 
     override fun onDrawFrame() {
+        // 如果开启了fbo，则绘制在离屏中
         // 必须首行
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId)
-
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-        GLES20.glClearColor(1f, 0f, 0f, 1f)
 
         // 程序生效
         GLES20.glUseProgram(programId)
@@ -198,7 +200,7 @@ class TextureRenderer(private val context: Context) : EGLRenderer {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
 
-        // FBO
+        // 创建FBO，绑定到上面创建的纹理
         val fboIds = IntArray(1)
         GLES20.glGenBuffers(1, fboIds, 0)
         fboId = fboIds[0]
@@ -225,9 +227,9 @@ class TextureRenderer(private val context: Context) : EGLRenderer {
         )
 
         if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            Log.e("ywl5320", "fbo wrong")
+            Log.w(TAG, "fbo wrong")
         } else {
-            Log.e("ywl5320", "fbo success")
+            Log.d(TAG, "fbo success")
         }
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)

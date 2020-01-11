@@ -18,8 +18,6 @@ class TextureView(context: Context, attrs: AttributeSet? = null) :
      * 初始化
      */
     private fun initialize() {
-        // GLES20
-//        setEGLContextClientVersion(2)
         // 设置Render
         setRenderer(TextureRenderer(context))
     }

@@ -1,15 +1,19 @@
-package me.jiahuan.android.audiovideosample.encoder
+package me.jiahuan.android.audiovideosample.camera
 
 import android.content.Context
 import android.opengl.GLES20
 import me.jiahuan.android.audiovideosample.R
-import me.jiahuan.android.audiovideosample.egl.EGLRenderer
 import me.jiahuan.android.audiovideosample.util.ShaderUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-class SurfaceRenderer(private val context: Context, private val textureId: Int) : EGLRenderer {
+
+class CameraFBORender(private val context: Context) {
+
+    companion object {
+        private const val TAG = "CameraRender"
+    }
 
     // 顶点坐标，三角形带绘制，左下角开始
     private val vertexData = floatArrayOf(
@@ -33,13 +37,16 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
     // 纹理坐标Buffer
     private lateinit var fragmentBuffer: FloatBuffer
 
+
     private var programId = 0
+
     // 顶点
     private var vPositionId = 0
     // 纹理
     private var fPositionId = 0
 
     private var vboId = 0
+
 
     init {
         initialize()
@@ -68,11 +75,40 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
         fragmentBuffer.position(0)
     }
 
-    override fun onSurfaceCreated() {
+
+    fun onChanged(width: Int, height: Int) {
+        GLES20.glViewport(0, 0, width, height)
+    }
+
+
+    fun onDraw(textureId: Int) {
+        // 程序生效
+        GLES20.glUseProgram(programId)
+
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboId)
+
+
+        // 生效顶点
+        GLES20.glEnableVertexAttribArray(vPositionId)
+        GLES20.glVertexAttribPointer(vPositionId, 2, GLES20.GL_FLOAT, false, 8, 0)
+
+        // 生效纹理
+        GLES20.glEnableVertexAttribArray(fPositionId)
+        GLES20.glVertexAttribPointer(fPositionId, 2, GLES20.GL_FLOAT, false, 8, vertexData.size * 4)
+
+        // 绘制
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+    }
+
+    fun onCreated() {
         // 顶点Shader源码
         val vertexSource = ShaderUtils.getRawResourceContent(context, R.raw.vertex_shader)
-        val fragmentSource =
-            ShaderUtils.getRawResourceContent(context, R.raw.fragment_shader)
+        val fragmentSource = ShaderUtils.getRawResourceContent(context, R.raw.fragment_shader)
         // 获取program
         programId = ShaderUtils.createProgram(vertexSource, fragmentSource)
 
@@ -103,32 +139,5 @@ class SurfaceRenderer(private val context: Context, private val textureId: Int) 
             fragmentBuffer
         )
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-    }
-
-    override fun onSurfaceChanged(width: Int, height: Int) {
-        GLES20.glViewport(0, 0, width, height)
-    }
-
-    override fun onDrawFrame() {
-        // 程序生效
-        GLES20.glUseProgram(programId)
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboId)
-
-
-        // 生效顶点
-        GLES20.glEnableVertexAttribArray(vPositionId)
-        GLES20.glVertexAttribPointer(vPositionId, 2, GLES20.GL_FLOAT, false, 8, 0)
-
-        // 生效纹理
-        GLES20.glEnableVertexAttribArray(fPositionId)
-        GLES20.glVertexAttribPointer(fPositionId, 2, GLES20.GL_FLOAT, false, 8, vertexData.size * 4)
-
-        // 绘制
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 }

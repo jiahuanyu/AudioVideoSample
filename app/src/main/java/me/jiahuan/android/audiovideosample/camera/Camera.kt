@@ -15,8 +15,6 @@ class Camera {
 
         camera.setPreviewTexture(surfaceTexture)
 
-//        camera.setDisplayOrientation(90)
-
         val parameters = camera.parameters
         parameters.previewFormat = ImageFormat.NV21
         parameters.setPictureSize(
@@ -29,10 +27,13 @@ class Camera {
             parameters.supportedPreviewSizes[0].height
         )
 
-//        parameters.setRotation(90)
-
         camera.parameters = parameters
 
         camera.startPreview()
+    }
+
+
+    fun release() {
+
     }
 }

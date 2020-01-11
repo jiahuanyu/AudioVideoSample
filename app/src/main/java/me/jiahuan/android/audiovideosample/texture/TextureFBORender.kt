@@ -22,10 +22,10 @@ class TextureFBORender(private val context: Context) {
 
     // 纹理坐标，与顶点坐标对应
     private val fragmentData = floatArrayOf(
-        0f, 1f,
-        1f, 1f,
         0f, 0f,
-        1f, 0f
+        1f, 0f,
+        0f, 1f,
+        1f, 1f
     )
 
     // 纹理坐标Buffer
@@ -111,9 +111,6 @@ class TextureFBORender(private val context: Context) {
 
 
     fun onDraw(textureId: Int) {
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-        GLES20.glClearColor(1f, 0f, 0f, 1f)
-
         // 程序生效
         GLES20.glUseProgram(programId)
 
