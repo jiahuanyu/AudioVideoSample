@@ -14,6 +14,17 @@ class MediaEncoder {
 
     companion object {
         private const val TAG = "MediaEncoder"
+
+        // 音频采样率
+        private const val AUDIO_SAMPLE_RATE = 44100
+        // 音频通道数
+        private const val AUDIO_CHANNEL_COUNT = 2
+        // 音频精度
+        private const val AUDIO_FORMAT = 16
+        // 视频编码帧率
+        private const val VIDEO_FRAME_RATE = 30
+        // 视频关键帧间隔 秒
+        private const val VIDEO_I_KET_FRAME_INTERVAL = 1
     }
 
     private lateinit var surfaceDrawThread: SurfaceDrawThread
@@ -47,7 +58,8 @@ class MediaEncoder {
 
     private var isAudioEncodeStoped = false
 
-    //  存放
+    //  存放PCM数据的队列
+    private val pcmData = ConcurrentLinkedQueue<ByteArray>()
 
     fun start(
         context: Context,
@@ -76,11 +88,17 @@ class MediaEncoder {
         surfaceDrawThread.exist()
     }
 
+    /**
+     * 初始化MediaMuxer
+     */
     private fun initMediaMuxer(file: File) {
         // 初始化MediaMuxer
         mediaMuxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
     }
 
+    /**
+     * 初始化视频编码环境
+     */
     private fun initVideoEncoderEnv(
         context: Context,
         width: Int,
@@ -95,12 +113,12 @@ class MediaEncoder {
             MediaFormat.KEY_COLOR_FORMAT,
             MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
         )
-        // 比特率
+        // 比特率，RGBA 4字节
         videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height * 4)
         // 帧率
-        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30)
+        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, VIDEO_FRAME_RATE)
         // 关键帧 1秒
-        videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
+        videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, VIDEO_I_KET_FRAME_INTERVAL)
         videoCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
         videoCodec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
 
@@ -119,12 +137,12 @@ class MediaEncoder {
 
     private fun initAudioEncoderEnv() {
         bufferSizeInBytes = AudioRecord.getMinBufferSize(
-            44100, AudioFormat.CHANNEL_IN_STEREO,
+            AUDIO_SAMPLE_RATE, AudioFormat.CHANNEL_IN_STEREO,
             AudioFormat.ENCODING_PCM_16BIT
         )
 
         audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_STEREO,
+            MediaRecorder.AudioSource.MIC, AUDIO_SAMPLE_RATE, AudioFormat.CHANNEL_IN_STEREO,
             AudioFormat.ENCODING_PCM_16BIT,
             bufferSizeInBytes
         )
@@ -132,8 +150,15 @@ class MediaEncoder {
 
 
         // 创建音频编码所需
-        val audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, 44100, 2)
-        audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, 44100 * 16 * 2)
+        val audioFormat = MediaFormat.createAudioFormat(
+            MediaFormat.MIMETYPE_AUDIO_AAC,
+            AUDIO_SAMPLE_RATE,
+            AUDIO_CHANNEL_COUNT
+        )
+        audioFormat.setInteger(
+            MediaFormat.KEY_BIT_RATE,
+            AUDIO_SAMPLE_RATE * AUDIO_FORMAT * AUDIO_CHANNEL_COUNT
+        )
         audioFormat.setInteger(
             MediaFormat.KEY_AAC_PROFILE,
             MediaCodecInfo.CodecProfileLevel.AACObjectLC
@@ -169,7 +194,7 @@ class MediaEncoder {
      * 视频（不包括音频）编码线程
      */
     inner class VideoEncoderThread : Thread() {
-        private var pts = 0L
+        private var presentationTimeUs = 0L
 
         override fun run() {
             val bufferInfo = MediaCodec.BufferInfo()
@@ -197,10 +222,11 @@ class MediaEncoder {
                             if (outputBuffer != null) {
                                 outputBuffer.position(bufferInfo.offset)
                                 outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
-                                if (pts == 0L) {
-                                    pts = bufferInfo.presentationTimeUs
+                                if (presentationTimeUs == 0L) {
+                                    presentationTimeUs = bufferInfo.presentationTimeUs
                                 }
-                                bufferInfo.presentationTimeUs = bufferInfo.presentationTimeUs - pts
+                                bufferInfo.presentationTimeUs =
+                                    bufferInfo.presentationTimeUs - presentationTimeUs
                                 Log.d(TAG, "time = ${bufferInfo.presentationTimeUs / 1000000}")
                                 mediaMuxer.writeSampleData(
                                     videoTrackIndex,
@@ -224,7 +250,10 @@ class MediaEncoder {
      */
     inner class AudioEncoderThread : Thread() {
 
-        private var pts = 0L
+        // 编码pts
+        private var presentationTimeUs = 0L
+        // 输入的pts
+        private var inputPresentationTimeUs = 0L
 
         override fun run() {
             val bufferInfo = MediaCodec.BufferInfo()
@@ -250,12 +279,12 @@ class MediaEncoder {
                         if (byteBuffer != null) {
                             byteBuffer.clear()
                             byteBuffer.put(buffer)
-                            calcAudioPts(buffer.size)
+                            inputPresentationTimeUs += (buffer.size / (AUDIO_SAMPLE_RATE.toFloat() * AUDIO_FORMAT / 8 * AUDIO_CHANNEL_COUNT) * 1000000).toLong()
                             audioCodec.queueInputBuffer(
                                 inputBufferIndex,
                                 0,
                                 buffer.size,
-                                audioPts,
+                                inputPresentationTimeUs,
                                 0
                             )
                         }
@@ -273,11 +302,11 @@ class MediaEncoder {
                             if (outputBuffer != null) {
                                 outputBuffer.position(bufferInfo.offset)
                                 outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
-                                if (pts == 0L) {
-                                    pts = bufferInfo.presentationTimeUs
+                                if (presentationTimeUs == 0L) {
+                                    presentationTimeUs = bufferInfo.presentationTimeUs
                                 }
                                 bufferInfo.presentationTimeUs =
-                                    bufferInfo.presentationTimeUs - pts
+                                    bufferInfo.presentationTimeUs - presentationTimeUs
                                 mediaMuxer.writeSampleData(
                                     audioTrackIndex,
                                     outputBuffer,
@@ -293,8 +322,6 @@ class MediaEncoder {
             }
         }
     }
-
-    private val pcmData = ConcurrentLinkedQueue<ByteArray>()
 
 
     /**
@@ -322,9 +349,4 @@ class MediaEncoder {
         }
     }
 
-    private var audioPts = 0L
-
-    private fun calcAudioPts(size: Int) {
-        audioPts += (size / (44100f * 2 * 2) * 1000000).toLong()
-    }
 }
