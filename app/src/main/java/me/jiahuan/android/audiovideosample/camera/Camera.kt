@@ -9,8 +9,8 @@ class Camera {
 
     private var currentCamera: Camera? = null
 
-    fun starPreview(surfaceTexture: SurfaceTexture, cameraId: Int) {
-        currentCamera = Camera.open(cameraId)
+    fun starPreview(surfaceTexture: SurfaceTexture) {
+        currentCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
 
         currentCamera?.let { camera ->
             val parameters = camera.parameters

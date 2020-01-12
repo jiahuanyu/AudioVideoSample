@@ -60,8 +60,9 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
     private var umatrix = 0
     private val matrix = FloatArray(16)
 
+    private var callback: Callback? = null
 
-    private lateinit var surfaceTexture: SurfaceTexture
+    private var surfaceTexture: SurfaceTexture? = null
 
     private val cameraRender by lazy {
         CameraRenderer(context)
@@ -96,7 +97,7 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
     }
 
     override fun onDrawFrame() {
-        surfaceTexture.updateTexImage()
+        surfaceTexture?.updateTexImage()
 
         //清空颜色
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
@@ -147,6 +148,7 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
 
         cameraRender.onSurfaceChanged(width, height)
 
+        // 根据前后摄像头以及屏幕的方向来控制旋转方向
         GLES20.glViewport(0, 0, width, height)
         Matrix.setIdentityM(matrix, 0)
         Matrix.rotateM(matrix, 0, 90f, 0f, 0f, 1f)
@@ -276,9 +278,11 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         )
 
         surfaceTexture = SurfaceTexture(cameraTextureId)
-        surfaceTexture.setOnFrameAvailableListener(this)
+        surfaceTexture?.setOnFrameAvailableListener(this)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
+
+        callback?.onSurfaceTextureCreated()
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
@@ -289,7 +293,15 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         return this.fboBindTextureId
     }
 
-    fun getSurfaceTexture(): SurfaceTexture {
+    fun getSurfaceTexture(): SurfaceTexture? {
         return this.surfaceTexture
+    }
+
+    fun setCallback(callback: Callback) {
+        this.callback = callback
+    }
+
+    interface Callback {
+        fun onSurfaceTextureCreated()
     }
 }
