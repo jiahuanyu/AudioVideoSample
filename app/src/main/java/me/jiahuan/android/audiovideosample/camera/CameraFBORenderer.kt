@@ -106,6 +106,7 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         // 程序生效
         GLES20.glUseProgram(programId)
 
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, cameraTextureId)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboId)
         GLES20.glUniformMatrix4fv(umatrix, 1, false, matrix, 0)
@@ -122,6 +123,7 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         // 绘制
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
 
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
