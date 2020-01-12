@@ -61,8 +61,6 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
     private val matrix = FloatArray(16)
 
 
-    private var callback: Callback? = null
-
     private lateinit var surfaceTexture: SurfaceTexture
 
     private val cameraRender by lazy {
@@ -278,8 +276,6 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
         surfaceTexture = SurfaceTexture(cameraTextureId)
         surfaceTexture.setOnFrameAvailableListener(this)
 
-        callback?.onSurfaceCreated(surfaceTexture, fboBindTextureId)
-
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
@@ -287,12 +283,11 @@ class CameraFBORenderer(private val context: Context) : EGLRenderer,
 
     }
 
-    fun setCallback(callback: Callback) {
-        this.callback = callback
+    fun getTextureId(): Int {
+        return this.fboBindTextureId
     }
 
-
-    interface Callback {
-        fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int)
+    fun getSurfaceTexture(): SurfaceTexture {
+        return this.surfaceTexture
     }
 }

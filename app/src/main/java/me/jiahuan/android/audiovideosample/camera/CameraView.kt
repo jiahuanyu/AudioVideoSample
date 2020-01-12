@@ -1,7 +1,6 @@
 package me.jiahuan.android.audiovideosample.camera
 
 import android.content.Context
-import android.graphics.SurfaceTexture
 import android.util.AttributeSet
 import me.jiahuan.android.audiovideosample.egl.EGLSurfaceView
 
@@ -12,12 +11,8 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
     EGLSurfaceView(context, attrs) {
 
     private val camera = Camera()
+    private val cameraFBORenderer = CameraFBORenderer(context)
 
-    private var hasSurfaceCreated = false
-
-    private var textureId = 0
-
-    private lateinit var surfaceTexture: SurfaceTexture
 
     init {
         initialize()
@@ -28,34 +23,25 @@ class CameraView @JvmOverloads constructor(context: Context, attrs: AttributeSet
      */
     private fun initialize() {
         // 设置Render
-        val cameraFBORenderer = CameraFBORenderer(context)
         setRenderer(cameraFBORenderer)
-
-        cameraFBORenderer.setCallback(object : CameraFBORenderer.Callback {
-            override fun onSurfaceCreated(surfaceTexture: SurfaceTexture, textureId: Int) {
-                hasSurfaceCreated = true
-                this@CameraView.surfaceTexture = surfaceTexture
-                this@CameraView.textureId = textureId
-                onResume()
-            }
-        })
     }
 
     fun getTextureId(): Int {
-        return textureId
+        return cameraFBORenderer.getTextureId()
     }
 
     fun onResume() {
-        if (hasSurfaceCreated) {
+        post {
             camera.starPreview(
-                surfaceTexture,
+                cameraFBORenderer.getSurfaceTexture(),
                 android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK
             )
         }
     }
 
     fun onPause() {
-        camera.stopPreview()
-        hasSurfaceCreated = false
+        post {
+            camera.stopPreview()
+        }
     }
 }
