@@ -25,6 +25,8 @@ class MediaEncoder {
         private const val VIDEO_FRAME_RATE = 30
         // 视频关键帧间隔 秒
         private const val VIDEO_I_KET_FRAME_INTERVAL = 1
+
+        private const val WAIT_TIME_US = 50000L
     }
 
     private lateinit var surfaceDrawThread: SurfaceDrawThread
@@ -57,6 +59,8 @@ class MediaEncoder {
     private var isVideoEncodeStoped = false
 
     private var isAudioEncodeStoped = false
+
+    private var isAudioRecordeStoped = false
 
     //  存放PCM数据的队列
     private val pcmData = ConcurrentLinkedQueue<ByteArray>()
@@ -188,6 +192,7 @@ class MediaEncoder {
                 mediaMuxer.stop()
             }
             mediaMuxer.release()
+            callback?.onEncoderFinished()
         }
     }
 
@@ -197,13 +202,15 @@ class MediaEncoder {
      */
     inner class VideoEncoderThread : Thread() {
         private var presentationTimeUs = 0L
+        private var realExit = false
+
 
         override fun run() {
             val bufferInfo = MediaCodec.BufferInfo()
             videoCodec.start()
 
             while (true) {
-                if (isMediaEncodeToStop) {
+                if (realExit) {
                     videoCodec.stop()
                     videoCodec.release()
                     isVideoEncodeStoped = true
@@ -211,15 +218,23 @@ class MediaEncoder {
                     break
                 }
 
-                var outputBufferIndex = videoCodec.dequeueOutputBuffer(bufferInfo, 0)
+                if (isMediaEncodeToStop) {
+                    videoCodec.signalEndOfInputStream()
+                }
 
+                var outputBufferIndex = videoCodec.dequeueOutputBuffer(bufferInfo, WAIT_TIME_US)
                 if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     videoTrackIndex = mediaMuxer.addTrack(videoCodec.outputFormat)
                     startMediaMuxer()
                 } else {
                     if (isMediaMuxerStated) {
-                        while (outputBufferIndex >= 0) {
+                        if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 && isMediaEncodeToStop) {
+                            Log.d(TAG, "视频结束")
+                            realExit = true
+                            continue
+                        }
 
+                        while (outputBufferIndex >= 0) {
                             val outputBuffer = videoCodec.getOutputBuffer(outputBufferIndex)
                             if (outputBuffer != null) {
                                 outputBuffer.position(bufferInfo.offset)
@@ -237,8 +252,8 @@ class MediaEncoder {
                                 )
                                 videoCodec.releaseOutputBuffer(outputBufferIndex, false)
                             }
-
-                            outputBufferIndex = videoCodec.dequeueOutputBuffer(bufferInfo, 0)
+                            outputBufferIndex =
+                                videoCodec.dequeueOutputBuffer(bufferInfo, WAIT_TIME_US)
                         }
                     }
                 }
@@ -251,18 +266,21 @@ class MediaEncoder {
      * 音频编码线程
      */
     inner class AudioEncoderThread : Thread() {
-
+        private var realExit = false
         // 编码pts
         private var presentationTimeUs = 0L
         // 输入的pts
         private var inputPresentationTimeUs = 0L
+
+        // endOfStream
+        private var isEndOfStream = false
 
         override fun run() {
             val bufferInfo = MediaCodec.BufferInfo()
             audioCodec.start()
 
             while (true) {
-                if (isMediaEncodeToStop) {
+                if (realExit) {
                     audioCodec.stop()
                     audioCodec.release()
                     isAudioEncodeStoped = true
@@ -270,35 +288,50 @@ class MediaEncoder {
                     break
                 }
 
-                val buffer = pcmData.poll()
-
-                if (isMediaMuxerStated && buffer != null && buffer.isNotEmpty()) {
-                    Log.d(TAG, "read len = ${buffer.size}")
-
-                    val inputBufferIndex = audioCodec.dequeueInputBuffer(0)
+                if (isMediaMuxerStated && !isEndOfStream) {
+                    val inputBufferIndex = audioCodec.dequeueInputBuffer(WAIT_TIME_US)
                     if (inputBufferIndex >= 0) {
-                        val byteBuffer = audioCodec.getInputBuffer(inputBufferIndex)
-                        if (byteBuffer != null) {
-                            byteBuffer.clear()
-                            byteBuffer.put(buffer)
-                            inputPresentationTimeUs += (buffer.size / (AUDIO_SAMPLE_RATE.toFloat() * AUDIO_FORMAT / 8 * AUDIO_CHANNEL_COUNT) * 1000000).toLong()
+                        val buffer = pcmData.poll()
+                        if (buffer != null && buffer.isNotEmpty()) {
+                            // 有数据的话
+                            val byteBuffer = audioCodec.getInputBuffer(inputBufferIndex)
+                            if (byteBuffer != null) {
+                                byteBuffer.clear()
+                                byteBuffer.put(buffer)
+                                inputPresentationTimeUs += (buffer.size / (AUDIO_SAMPLE_RATE.toFloat() * AUDIO_FORMAT / 8 * AUDIO_CHANNEL_COUNT) * 1000000).toLong()
+                                audioCodec.queueInputBuffer(
+                                    inputBufferIndex,
+                                    0,
+                                    buffer.size,
+                                    inputPresentationTimeUs,
+                                    0
+                                )
+                            }
+                        } else if (isMediaEncodeToStop && isAudioRecordeStoped) {
+                            // 无数据且结束
                             audioCodec.queueInputBuffer(
                                 inputBufferIndex,
                                 0,
-                                buffer.size,
-                                inputPresentationTimeUs,
-                                0
+                                0,
+                                0,
+                                MediaCodec.BUFFER_FLAG_END_OF_STREAM
                             )
+                            isEndOfStream = true
                         }
                     }
                 }
 
-                var outputBufferIndex = audioCodec.dequeueOutputBuffer(bufferInfo, 0)
+                var outputBufferIndex = audioCodec.dequeueOutputBuffer(bufferInfo, WAIT_TIME_US)
                 if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     audioTrackIndex = mediaMuxer.addTrack(audioCodec.outputFormat)
                     startMediaMuxer()
                 } else {
                     if (isMediaMuxerStated) {
+                        if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 && isMediaEncodeToStop) {
+                            Log.d(TAG, "音频结束")
+                            realExit = true
+                            continue
+                        }
                         while (outputBufferIndex >= 0) {
                             val outputBuffer = audioCodec.getOutputBuffer(outputBufferIndex)
                             if (outputBuffer != null) {
@@ -315,9 +348,10 @@ class MediaEncoder {
                                     bufferInfo
                                 )
                                 audioCodec.releaseOutputBuffer(outputBufferIndex, false)
-                            }
 
-                            outputBufferIndex = audioCodec.dequeueOutputBuffer(bufferInfo, 0)
+                            }
+                            outputBufferIndex =
+                                audioCodec.dequeueOutputBuffer(bufferInfo, WAIT_TIME_US)
                         }
                     }
                 }
@@ -339,16 +373,27 @@ class MediaEncoder {
                 if (isMediaEncodeToStop) {
                     audioRecord.stop()
                     audioRecord.release()
+                    isAudioRecordeStoped = true
                     break
                 }
+
                 val audioData = ByteArray(bufferSizeInBytes)
                 val len = audioRecord.read(audioData, 0, bufferSizeInBytes)
+                Log.d(TAG, "len = $len")
                 if (len > 0) {
-                    Log.d(TAG, "len = $len")
                     pcmData.offer(audioData.copyOfRange(0, len))
                 }
             }
         }
     }
 
+    private var callback: Callback? = null
+
+    fun setCallback(callback: Callback) {
+        this.callback = callback
+    }
+
+    interface Callback {
+        fun onEncoderFinished()
+    }
 }
