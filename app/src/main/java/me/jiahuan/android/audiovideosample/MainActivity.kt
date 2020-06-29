@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import me.jiahuan.android.audiovideosample.camera.CameraActivity
 import me.jiahuan.android.audiovideosample.egl.OpenglESActivity
+import me.jiahuan.android.audiovideosample.screen.ScreenActivity
 import me.jiahuan.android.audiovideosample.texture.TextureActivity
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +26,10 @@ class MainActivity : AppCompatActivity() {
 
         id_camera_button.setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
+        }
+
+        id_screen_button.setOnClickListener {
+            startActivity(Intent(this, ScreenActivity::class.java))
         }
     }
 }

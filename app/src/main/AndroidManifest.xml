@@ -4,7 +4,7 @@
 
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
@@ -33,6 +33,10 @@
 
         <activity
             android:name=".texture.TextureActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".screen.ScreenActivity"
             android:exported="false" />
     </application>
 

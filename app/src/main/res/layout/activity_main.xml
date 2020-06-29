@@ -32,4 +32,12 @@
         android:text="摄像"
         app:layout_constraintTop_toBottomOf="@+id/id_texture_button" />
 
+    <Button
+        android:id="@+id/id_screen_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="屏幕录制"
+        app:layout_constraintTop_toBottomOf="@+id/id_camera_button" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
