@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <me.jiahuan.android.audiovideosample.ffmpeg.XPlay
+        android:id="@+id/id_xplay"
+        android:layout_width="720px"
+        android:layout_height="405px" />
+</FrameLayout>

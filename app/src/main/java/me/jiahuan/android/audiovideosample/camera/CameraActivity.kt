@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_camera.*
 import me.jiahuan.android.audiovideosample.R
-import me.jiahuan.android.audiovideosample.encoder.MediaEncoder
 import java.io.File
 
 class CameraActivity : AppCompatActivity() {

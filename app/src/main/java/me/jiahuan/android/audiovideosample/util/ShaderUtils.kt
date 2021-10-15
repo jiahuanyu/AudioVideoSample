@@ -23,7 +23,6 @@ object ShaderUtils {
         return sb.toString()
     }
 
-
     /**
      * 加载着色器
      */
@@ -46,7 +45,6 @@ object ShaderUtils {
             return 0
         }
     }
-
 
     /**
      * 创建 program
@@ -76,5 +74,4 @@ object ShaderUtils {
         }
         return 0
     }
-
 }

@@ -1,2 +1,2 @@
 ## AudioVideoSample
-音视频DEMO
+Android 音视频相关示例代码
