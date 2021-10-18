@@ -2,7 +2,6 @@
 #define LOG_UTIL_H
 
 #include <android/log.h>
-#include <sys/time.h>
 
 #define  LOG_TAG "AudioVideoSample"
 

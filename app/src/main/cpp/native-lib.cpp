@@ -6,6 +6,8 @@
 #include <SLES/OpenSLES_Android.h>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
+#include <FFDecode.h>
+#include "player/FFDemux.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -676,4 +678,29 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen2(JNIEnv *env, j
     }
 
     env->ReleaseStringUTFChars(jUrl, path);
+}
+
+class TestOb : public IObserver {
+public:
+    void Update(XData d) {
+        LOGCATI("Test Obs Update data size %d", d.size);
+    }
+};
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen3(JNIEnv *env, jobject thiz) {
+    TestOb *testOb = new TestOb();
+    IDemux *demux = new FFDemux();
+    demux->AddObserver(testOb);
+    demux->Open("/sdcard/one_piece.mp4");
+//    for(;;) {
+//        XData data = demux->Read();
+//        LOGCATI("Read data size = %d", data.size);
+//    }
+    IDecode *decode = new FFDecode();
+//    decode->Open();
+    demux->Start();
+    XSleep(3000);
+    demux->Stop();
 }

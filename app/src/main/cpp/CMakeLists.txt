@@ -3,28 +3,24 @@ cmake_minimum_required(VERSION 3.10.2)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
-set(jnilibs ${CMAKE_SOURCE_DIR}/../jniLibs)
-set(libname native-lib)
+set(jni-libs ${CMAKE_SOURCE_DIR}/../jniLibs)
+set(lib-name native-lib)
 
 include_directories(
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/util
-        )
+        ${CMAKE_SOURCE_DIR}/player)
 
-link_directories(${jnilibs}/${ANDROID_ABI})
+link_directories(${jni-libs}/${ANDROID_ABI})
 
 file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/*.cpp
         ${CMAKE_SOURCE_DIR}/util/*.cpp
-        )
+        ${CMAKE_SOURCE_DIR}/player/*.cpp)
 
-add_library( # Sets the name of the library.
-             ${libname}
-             # Sets the library as a shared library.
+add_library(${lib-name}
              SHARED
-             # Provides a relative path to your source file(s).
-             ${src-files}
-        )
+             ${src-files})
 
 set(third-party-libs
         avformat
@@ -32,8 +28,7 @@ set(third-party-libs
         avfilter
         swresample
         swscale
-        avutil
-        )
+        avutil)
 
 set(native-libs
         android
@@ -42,15 +37,9 @@ set(native-libs
         OpenSLES
         log
         m
-        z
-        )
+        z)
 
-target_link_libraries( # Specifies the target library.
-                       ${libname}
-
-                       # Links the target library to the log library
-                       # included in the NDK.
+target_link_libraries(${lib-name}
                        ${log-lib}
                        ${third-party-libs}
-                       ${native-libs}
-                       )
+                       ${native-libs})
