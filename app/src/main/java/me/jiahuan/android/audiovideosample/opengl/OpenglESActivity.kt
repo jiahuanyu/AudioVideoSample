@@ -1,4 +1,4 @@
-package me.jiahuan.android.audiovideosample.egl
+package me.jiahuan.android.audiovideosample.opengl
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

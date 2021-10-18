@@ -1,6 +1,7 @@
-package me.jiahuan.android.audiovideosample.egl
+package me.jiahuan.android.audiovideosample.opengl
 
 import android.opengl.GLES20
+import me.jiahuan.android.audiovideosample.egl.EGLRenderer
 
 class OpenglESRenderer : EGLRenderer {
     override fun onSurfaceCreated() {

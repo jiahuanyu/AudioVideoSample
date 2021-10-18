@@ -7,7 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import me.jiahuan.android.audiovideosample.camera.CameraActivity
 import me.jiahuan.android.audiovideosample.databinding.LayoutActivityMainBinding
-import me.jiahuan.android.audiovideosample.egl.OpenglESActivity
+import me.jiahuan.android.audiovideosample.opengl.OpenglESActivity
 import me.jiahuan.android.audiovideosample.ffmpeg.FFMpegActivity
 
 class MainActivity : AppCompatActivity() {

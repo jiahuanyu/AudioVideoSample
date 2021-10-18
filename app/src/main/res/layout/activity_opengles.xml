@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <me.jiahuan.android.audiovideosample.egl.OpenglESView
+    <me.jiahuan.android.audiovideosample.opengl.OpenglESView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

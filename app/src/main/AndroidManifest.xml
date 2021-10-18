@@ -29,7 +29,7 @@
         </activity>
 
         <activity
-            android:name=".egl.OpenglESActivity"
+            android:name=".opengl.OpenglESActivity"
             android:exported="false" />
 
         <activity
