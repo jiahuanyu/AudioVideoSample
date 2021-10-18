@@ -4,6 +4,8 @@
 #include <android/native_window_jni.h>
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+#include <EGL/egl.h>
+#include <GLES3/gl3.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -231,7 +233,7 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen(JNIEnv *env, jo
     delete[] rgb;
 }
 
-
+/////////////
 static SLObjectItf slEngine = nullptr;
 
 SLEngineItf CreateSL() {
@@ -381,4 +383,297 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpenSL(JNIEnv *env, 
 
     // 启动队列回调
     (*slAndroidSimpleBufferQueueItf)->Enqueue(slAndroidSimpleBufferQueueItf, "", 1);
+}
+
+
+/////////////
+
+// 顶点着色器
+#define GET_STR(x) #x
+static const char *vertexShader = GET_STR(
+        attribute vec4 aPosition;
+        attribute vec2 aTexCoord;
+
+        varying vec2 vTexCoord;
+
+        void main() {
+            vTexCoord = aTexCoord;
+            gl_Position = aPosition;
+        }
+);
+
+// 片源着色器
+static const char *fragmentYUV420PShader = GET_STR(
+        precision mediump float;
+        uniform sampler2D yTexture;
+        uniform sampler2D uTexture;
+        uniform sampler2D vTexture;
+
+        varying vec2 vTexCoord;
+
+        void main() {
+            vec3 yuv;
+            vec3 rgb;
+            yuv.x = texture2D(yTexture, vTexCoord).r;
+            yuv.y = texture2D(uTexture, vTexCoord).r - 0.5;
+            yuv.z = texture2D(vTexture, vTexCoord).r - 0.5;
+            rgb = mat3(
+                    1.0, 1.0, 1.0,
+                    0.0, -0.3945, 2.03211,
+                    1.13983, -0.5806, 0.0
+            ) * yuv;
+            gl_FragColor = vec4(rgb, 1.0);
+        }
+);
+
+GLint InitShader(const char *code, GLint type) {
+    GLuint shader = glCreateShader(type);
+    if (shader == 0) {
+        LOGCATE("glCreateShader %d fail", type);
+        return 0;
+    }
+    // 加载 shader
+    glShaderSource(shader, 1, &code, nullptr);
+    // 编译 shader
+    glCompileShader(shader);
+    // 获取编译情况
+    GLint status;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (status != GL_TRUE) {
+        LOGCATE("compile sharder fail");
+        return 0;
+    } else {
+        LOGCATI("compile sharder success");
+    }
+    return shader;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen2(JNIEnv *env, jobject thiz,
+                                                                  jstring jUrl, jobject jSurface) {
+    const char *path = env->GetStringUTFChars(jUrl, nullptr);
+    FILE *fp = fopen(path, "rb");
+    if (fp == nullptr) {
+        LOGCATE("open file fail, %s", path);
+        return;
+    }
+
+    // 获取原始窗口
+    ANativeWindow *aNativeWindow = ANativeWindow_fromSurface(env, jSurface);
+
+    // * Display
+    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (display == EGL_NO_DISPLAY) {
+        LOGCATE("eglGetDisplay fail");
+        return;
+    }
+    // 后面两个参数是版本号
+    if (eglInitialize(display, nullptr, nullptr) != EGL_TRUE) {
+        LOGCATE("eglInitialize fail");
+        return;
+    }
+
+    // * Surface
+    // 窗口配置
+    EGLConfig config; // 输出的配置项
+    EGLint configNum; // 输出的配置项
+    EGLint configSpec[] = {
+            EGL_RED_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_BLUE_SIZE, 8,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE
+    };
+    if (eglChooseConfig(display, configSpec, &config, 1, &configNum) != EGL_TRUE) {
+        LOGCATE("eglChooseConfig fail");
+        return;
+    }
+    // 创建 Surface
+    EGLSurface surface = eglCreateWindowSurface(display, config, aNativeWindow, nullptr);
+    if (surface == EGL_NO_SURFACE) {
+        LOGCATE("eglCreateWindowSurface fail");
+        return;
+    }
+
+    // * Context
+    const EGLint ctxAttr[] = {
+            EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
+    };
+    EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttr);
+    if (context == EGL_NO_CONTEXT) {
+        LOGCATE("eglCreateContext fail");
+        return;
+    }
+    if (eglMakeCurrent(display, surface, surface, context) != EGL_TRUE) {
+        LOGCATE("eglMakeCurrent fail");
+        return;
+    }
+    LOGCATI("EGL INIT SUCCESS");
+
+    GLint vtShader = InitShader(vertexShader, GL_VERTEX_SHADER);
+    GLint fragShader = InitShader(fragmentYUV420PShader, GL_FRAGMENT_SHADER);
+
+    GLint program = glCreateProgram();
+    if (program == 0) {
+        LOGCATE("glCreateProgram fail");
+        return;
+    }
+    // 加入着色器
+    glAttachShader(program, vtShader);
+    glAttachShader(program, fragShader);
+
+    // 链接
+    glLinkProgram(program);
+
+    GLint status;
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
+    if (status != GL_TRUE) {
+        LOGCATE("glLinkProgram fail");
+        return;
+    }
+
+    // 激活
+    glUseProgram(program);
+
+    // 设置顶点坐标
+    static float vertexCoords[] = {
+            1.0f, -1.0f, 0.0f,
+            -1.0f, -1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f,
+            -1.0f, 1.0f, 0.0f
+    };
+    GLint aPositionLocation = glGetAttribLocation(program, "aPosition");
+    glEnableVertexAttribArray(aPositionLocation);
+    glVertexAttribPointer(aPositionLocation, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                          vertexCoords);
+
+    // 设置纹理坐标
+    static float textureCoords[] = {
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 0.0f,
+    };
+    GLint aTextCoordLocation = glGetAttribLocation(program, "aTexCoord");
+    glEnableVertexAttribArray(aTextCoordLocation);
+    glVertexAttribPointer(aTextCoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
+                          textureCoords);
+    // 设置层
+    glUniform1i(glGetUniformLocation(program, "yTexture"), 0);
+    glUniform1i(glGetUniformLocation(program, "uTexture"), 1);
+    glUniform1i(glGetUniformLocation(program, "vTexture"), 2);
+
+    // 创建三个纹理
+    GLuint texts[3] = {0};
+    glGenTextures(3, texts);
+
+    // 纹理标准步骤
+    // 调用此代码之后的所有纹理设置都相对于此纹理
+    glBindTexture(GL_TEXTURE_2D, texts[0]);
+
+    // 设置纹理采样方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width = 424;
+    int height = 240;
+
+    // 加载数据
+    glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_LUMINANCE, // 灰度
+            width,
+            height,
+            0,
+            GL_LUMINANCE,
+            GL_UNSIGNED_BYTE,
+            nullptr
+    );
+    glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+    // 纹理标准步骤
+    // 调用此代码之后的所有纹理设置都相对于此纹理
+    glBindTexture(GL_TEXTURE_2D, texts[1]);
+
+    // 设置纹理采样方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // 加载数据
+    glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_LUMINANCE, // 灰度
+            width / 2,
+            height / 2,
+            0,
+            GL_LUMINANCE,
+            GL_UNSIGNED_BYTE,
+            nullptr
+    );
+    glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+    // 纹理标准步骤
+    // 调用此代码之后的所有纹理设置都相对于此纹理
+    glBindTexture(GL_TEXTURE_2D, texts[2]);
+
+    // yuv420p  yyyy u v
+
+    // 设置纹理采样方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // 加载数据
+    glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_LUMINANCE, // 灰度
+            width / 2,
+            height / 2,
+            0,
+            GL_LUMINANCE,
+            GL_UNSIGNED_BYTE,
+            nullptr
+    );
+    glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+    unsigned char *buf[3] = {nullptr};
+    buf[0] = new unsigned char[width * height];
+    buf[1] = new unsigned char[width * height / 4];
+    buf[2] = new unsigned char[width * height / 4];
+
+    for (int i = 0; i < 10000; i++) {
+//        memset(buf[0], i, width * height);
+//        memset(buf[1], i, width * height / 4);
+//        memset(buf[2], i, width * height / 4);
+
+        if (feof(fp) == 0) {
+            fread(buf[0], 1, width * height, fp);
+            fread(buf[1], 1, width * height / 4, fp);
+            fread(buf[2], 1, width * height / 4, fp);
+        }
+
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texts[0]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                        buf[0]);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texts[1]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width / 2, height / 2, GL_LUMINANCE,
+                        GL_UNSIGNED_BYTE, buf[1]);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, texts[2]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width / 2, height / 2, GL_LUMINANCE,
+                        GL_UNSIGNED_BYTE, buf[2]);
+
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        eglSwapBuffers(display, surface);
+    }
+
+    env->ReleaseStringUTFChars(jUrl, path);
 }

@@ -13,8 +13,8 @@ class XPlay @JvmOverloads constructor(
     }
 
     override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
-//        Thread(this).start()
-        nativeOpenSL()
+        Thread(this).start()
+//        nativeOpenSL()
     }
 
     override fun surfaceChanged(surfaceHolder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
@@ -24,10 +24,12 @@ class XPlay @JvmOverloads constructor(
     }
 
     override fun run() {
-        nativeOpen("/sdcard/one_piece.mp4", holder.surface)
+        nativeOpen2("/sdcard/one_piece.yuv", holder.surface)
     }
 
     private external fun nativeOpen(url:String, surface: Any)
 
     private external fun nativeOpenSL()
+
+    private external fun nativeOpen2(url: String, surface: Any)
 }

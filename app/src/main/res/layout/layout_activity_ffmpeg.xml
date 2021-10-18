@@ -5,6 +5,6 @@
     android:layout_height="match_parent">
     <me.jiahuan.android.audiovideosample.ffmpeg.XPlay
         android:id="@+id/id_xplay"
-        android:layout_width="720px"
-        android:layout_height="405px" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </FrameLayout>
