@@ -23,6 +23,7 @@ void XThread::Stop() {
 
 void XThread::Start() {
     isExist = false;
+    isRunning = false;
     thread thread(&XThread::ThreadMain, this);
     thread.detach();
 }

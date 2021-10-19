@@ -690,17 +690,19 @@ public:
 extern "C"
 JNIEXPORT void JNICALL
 Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen3(JNIEnv *env, jobject thiz) {
-    TestOb *testOb = new TestOb();
     IDemux *demux = new FFDemux();
-    demux->AddObserver(testOb);
     demux->Open("/sdcard/one_piece.mp4");
-//    for(;;) {
-//        XData data = demux->Read();
-//        LOGCATI("Read data size = %d", data.size);
-//    }
-    IDecode *decode = new FFDecode();
-//    decode->Open();
+    IDecode *videoDecode = new FFDecode();
+    videoDecode->Open(demux->GetVPara());
+
+    IDecode *audioDecode = new FFDecode();
+    audioDecode->Open(demux->GetAPara());
+
+    demux->AddObserver(videoDecode);
+    demux->AddObserver(audioDecode);
+
     demux->Start();
-    XSleep(3000);
-    demux->Stop();
+
+    videoDecode->Start();
+    audioDecode->Start();
 }
