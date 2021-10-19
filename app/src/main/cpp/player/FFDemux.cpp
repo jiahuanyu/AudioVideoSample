@@ -54,7 +54,13 @@ XData FFDemux::Read() {
     }
     data.data = reinterpret_cast<unsigned char *>(avPacket);
     data.size = avPacket->size;
-    data.isAudio = avPacket->stream_index == audioStreamIndex;
+    if (avPacket->stream_index == audioStreamIndex) {
+        data.mediaType = MEDIA_TYPE_AUDIO;
+    } else if (avPacket->stream_index == videoStreamIndex) {
+        data.mediaType = MEDIA_TYPE_VIDEO;
+    } else {
+        data.mediaType = MEDIA_TYPE_UNKNOWN;
+    }
     return data;
 }
 

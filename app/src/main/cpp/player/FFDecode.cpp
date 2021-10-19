@@ -30,9 +30,11 @@ bool FFDecode::Open(XParameter parameter) {
     }
 
     if (avCodecContext->codec_type == AVMEDIA_TYPE_VIDEO) {
-        this->isAudio = false;
+        this->mediaType = MEDIA_TYPE_VIDEO;
+    } else if (avCodecContext->codec_type == AVMEDIA_TYPE_AUDIO) {
+        this->mediaType = MEDIA_TYPE_AUDIO;
     } else {
-        this->isAudio = true;
+        this->mediaType = MEDIA_TYPE_UNKNOWN;
     }
     XLOGI("avcodec_open success");
     return true;
@@ -68,7 +70,9 @@ XData FFDecode::RecvFrame() {
         data.size = (avFrame->linesize[0] + avFrame->linesize[1] + avFrame->linesize[2]) *
                     avFrame->height;
     } else {
-        data.size = av_get_bytes_per_sample((AVSampleFormat) avFrame->format) * avFrame->nb_samples * avFrame->channels;
+        data.size =
+                av_get_bytes_per_sample((AVSampleFormat) avFrame->format) * avFrame->nb_samples *
+                avFrame->channels;
     }
     return data;
 }

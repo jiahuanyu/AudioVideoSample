@@ -28,7 +28,7 @@ void IDecode::Main() {
 }
 
 void IDecode::Update(XData data) {
-    if (data.isAudio != isAudio) {
+    if (data.mediaType != mediaType) {
         return;
     }
 

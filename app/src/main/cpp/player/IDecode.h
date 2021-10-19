@@ -5,6 +5,7 @@
 #include "XParameter.h"
 #include "IObserver.h"
 #include <list>
+#include "macro.h"
 
 class IDecode : public IObserver {
 public:
@@ -18,7 +19,7 @@ public:
 
     virtual void Update(XData data);
 
-    bool isAudio = false;
+    MediaType mediaType = MEDIA_TYPE_UNKNOWN;
 
     int maxList = 100;
 protected:

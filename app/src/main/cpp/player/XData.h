@@ -2,11 +2,13 @@
 #ifndef XDATA_H
 #define XDATA_H
 
+#include "macro.h"
 
 struct XData {
-    unsigned char * data = nullptr;
+    unsigned char *data = nullptr;
     int size = 0;
-    bool isAudio = false;
+    MediaType mediaType = MEDIA_TYPE_UNKNOWN;
+
     void Drop();
 };
 
