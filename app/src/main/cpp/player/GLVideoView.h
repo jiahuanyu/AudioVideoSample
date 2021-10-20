@@ -2,7 +2,6 @@
 #define GLVIDEOVIEW_H
 
 
-#include "XData.h"
 #include "IVideoView.h"
 
 class XTexture;
@@ -11,7 +10,7 @@ class GLVideoView: public IVideoView {
 public:
     virtual void SetRender(void *window);
 
-    virtual void Render(XFrameData data);
+    virtual void Render(FFFrameData data);
 
 protected:
     void *view = nullptr;

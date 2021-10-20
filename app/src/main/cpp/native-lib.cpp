@@ -689,24 +689,23 @@ IVideoView *view = nullptr;
 extern "C"
 JNIEXPORT void JNICALL
 Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen3(JNIEnv *env, jobject thiz) {
-    IDemux *demux = new FFDemux();
-    demux->Open("/sdcard/midway.mp4");
-    IDecode *videoDecode = new FFDecode();
-    videoDecode->Open(demux->GetVPara());
+    FFDemux *demux = new FFDemux();
+    demux->Open("/sdcard/1080.mp4");
 
-//    IDecode *audioDecode = new FFDecode();
-//    audioDecode->Open(demux->GetAPara());
+    FFDecode *videoDecode = new FFDecode();
+    videoDecode->Open(demux->GetVPara());
+    FFDecode *audioDecode = new FFDecode();
+    audioDecode->Open(demux->GetAPara());
 
     demux->AddObserver(videoDecode);
-//    demux->AddObserver(audioDecode);
+    demux->AddObserver(audioDecode);
 
     view = new GLVideoView();
     videoDecode->AddObserver(view);
 
     demux->Start();
-
     videoDecode->Start();
-//    audioDecode->Start();
+    audioDecode->Start();
 }
 
 extern "C"

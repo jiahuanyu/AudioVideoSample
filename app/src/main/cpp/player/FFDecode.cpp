@@ -5,7 +5,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-bool FFDecode::Open(XParameter parameter) {
+bool FFDecode::Open(FFParameter parameter) {
     if (parameter.parameters == nullptr) {
         return false;
     }
@@ -40,11 +40,11 @@ bool FFDecode::Open(XParameter parameter) {
     return true;
 }
 
-bool FFDecode::SendPacket(XPacketData data) {
-    if (avCodecContext == nullptr || data.size <= 0 || data.data == nullptr) {
+bool FFDecode::SendPacket(FFPacketData data) {
+    if (avCodecContext == nullptr || data.avPacket == nullptr) {
         return false;
     }
-    int result = avcodec_send_packet(avCodecContext, reinterpret_cast<const AVPacket *>(data.data));
+    int result = avcodec_send_packet(avCodecContext, data.avPacket);
     if (result != 0) {
         return false;
     }
@@ -52,7 +52,7 @@ bool FFDecode::SendPacket(XPacketData data) {
 }
 
 
-XFrameData FFDecode::ReadFrame() {
+FFFrameData FFDecode::ReadFrame() {
     if (avCodecContext == nullptr) {
         return {};
     }
@@ -65,13 +65,11 @@ XFrameData FFDecode::ReadFrame() {
         return {};
     }
     // 解码成功
-    XFrameData data;
-    data.data = reinterpret_cast<unsigned char *>(avFrame);
+    FFFrameData data;
+    data.avFrame = avFrame;
     if (avCodecContext->codec_type == AVMEDIA_TYPE_VIDEO) {
 //        data.size = (avFrame->linesize[0] + avFrame->linesize[1] + avFrame->linesize[2]) *
 //                    avFrame->height;
-        data.width = avFrame->width;
-        data.height = avFrame->height;
     } else if (avCodecContext->codec_type == AVMEDIA_TYPE_AUDIO) {
 //        data.size =
 //                av_get_bytes_per_sample(
@@ -84,6 +82,50 @@ XFrameData FFDecode::ReadFrame() {
 //    memcpy(data.datas[0], avFrame->data[0], avFrame->width * avFrame->height);
 //    memcpy(data.datas[1], avFrame->data[1], avFrame->width * avFrame->height / 4);
 //    memcpy(data.datas[2], avFrame->data[2], avFrame->width * avFrame->height / 4);
-    memcpy(data.datas, avFrame->data, sizeof(data.datas));
+//    memcpy(data.datas, avFrame->data, sizeof(data.datas));
     return data;
 }
+
+
+void FFDecode::Main() {
+    while (!isExist) {
+        packsMutex.lock();
+        if (packs.empty()) {
+            packsMutex.unlock();
+            XSleep(1);
+            continue;
+        }
+        // 取出
+        FFPacketData packetData = packs.front();
+        packs.pop_front();
+        if (this->SendPacket(packetData)) {
+            while (!isExist) {
+                FFFrameData frameData = ReadFrame();
+                if (frameData.avFrame == nullptr) {
+                    break;
+                }
+                NotifyValueChanged(frameData);
+            }
+        }
+        packetData.Drop();
+        packsMutex.unlock();
+    }
+}
+
+void FFDecode::Update(FFPacketData data) {
+    if (data.mediaType != mediaType) {
+        return;
+    }
+
+    while (!isExist) {
+        packsMutex.lock();
+        if (packs.size() < maxList) {
+            packs.push_back(data);
+            packsMutex.unlock();
+            break;
+        }
+        packsMutex.unlock();
+        XSleep(1);
+    }
+}
+

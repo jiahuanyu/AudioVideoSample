@@ -126,9 +126,6 @@ bool XShader::Init() {
     glUniform1i(glGetUniformLocation(program, "uTexture"), 1);
     glUniform1i(glGetUniformLocation(program, "vTexture"), 2);
 
-    glViewport(0, 0, 540, 303);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
     XLOGI("init shader success");
 
     return true;
@@ -138,7 +135,6 @@ void XShader::Draw() {
     if (program == 0) {
         return;
     }
-    glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 

@@ -1,5 +1,5 @@
 #include "IVideoView.h"
 
-void IVideoView::Update(XFrameData data) {
+void IVideoView::Update(FFFrameData data) {
     this->Render(data);
 }

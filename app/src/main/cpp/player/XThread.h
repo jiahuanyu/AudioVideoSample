@@ -7,8 +7,10 @@ void XSleep(int mis);
 class XThread {
 public:
     virtual void Start();
+
     virtual void Stop();
-    virtual void Main(){}
+
+    virtual void Main() = 0;
 
 protected:
     bool isExist = false;

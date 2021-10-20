@@ -34,24 +34,23 @@ bool FFDemux::Open(const char *uri) {
         XLOGE("FFDemux avformat_find_stream_info %s fail, with error %s", uri, buffer);
         return false;
     }
-    this->totalMs = avFormatContext->duration / (AV_TIME_BASE / 1000);
-    XLOGI("total ms = %ld", this->totalMs);
+//    this->totalMs = avFormatContext->duration / (AV_TIME_BASE / 1000);
+//    XLOGI("total ms = %ld", this->totalMs);
     return true;
 }
 
-XPacketData FFDemux::ReadPacket() {
+FFPacketData FFDemux::ReadPacket() {
     if (avFormatContext == nullptr) {
         return {};
     }
     AVPacket *avPacket = av_packet_alloc();
-    XPacketData packetData;
+    FFPacketData packetData;
     int result = av_read_frame(avFormatContext, avPacket);
     if (result != 0) {
         av_packet_free(&avPacket);
         return {};
     }
-    packetData.data = reinterpret_cast<unsigned char *>(avPacket);
-    packetData.size = avPacket->size;
+    packetData.avPacket = avPacket;
     if (avPacket->stream_index == audioStreamIndex) {
         packetData.mediaType = MEDIA_TYPE_AUDIO;
     } else if (avPacket->stream_index == videoStreamIndex) {
@@ -62,7 +61,7 @@ XPacketData FFDemux::ReadPacket() {
     return packetData;
 }
 
-XParameter FFDemux::GetVPara() {
+FFParameter FFDemux::GetVPara() {
     if (avFormatContext == nullptr) {
         XLOGE("avFormatContext is nullptr");
         return {};
@@ -78,12 +77,12 @@ XParameter FFDemux::GetVPara() {
         XLOGE("find video stream fail");
         return {};
     }
-    XParameter xParameter;
+    FFParameter xParameter;
     xParameter.parameters = avFormatContext->streams[videoStreamIndex]->codecpar;
     return xParameter;
 }
 
-XParameter FFDemux::GetAPara() {
+FFParameter FFDemux::GetAPara() {
     if (avFormatContext == nullptr) {
         XLOGE("avFormatContext is nullptr");
         return {};
@@ -99,7 +98,16 @@ XParameter FFDemux::GetAPara() {
         XLOGE("find video stream fail");
         return {};
     }
-    XParameter xParameter;
+    FFParameter xParameter;
     xParameter.parameters = avFormatContext->streams[audioStreamIndex]->codecpar;
     return xParameter;
+}
+
+void FFDemux::Main() {
+    while (!isExist) {
+        FFPacketData data = ReadPacket();
+        if (data.avPacket != nullptr) {
+            NotifyValueChanged(data);
+        }
+    }
 }

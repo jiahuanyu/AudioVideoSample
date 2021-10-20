@@ -2,17 +2,16 @@
 #define IVIDEOVIEW_H
 
 
-#include "XData.h"
 #include "IObserver.h"
-#include "XFrameData.h"
+#include "FFFrameData.h"
 
-class IVideoView: public IObserver<XFrameData> {
+class IVideoView: public IObserver<FFFrameData> {
 public:
     virtual void SetRender(void *window) = 0;
 
-    virtual void Render(XFrameData data) = 0;
+    virtual void Render(FFFrameData data) = 0;
 
-    virtual void Update(XFrameData data);
+    virtual void Update(FFFrameData data);
 };
 
 
