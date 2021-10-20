@@ -3,9 +3,9 @@
 
 void IDemux::Main() {
     while (!isExist) {
-        XData data = Read();
+        XPacketData data = ReadPacket();
         if (data.size > 0) {
-            Notify(data);
+            NotifyValueChanged(data);
         }
     }
 }

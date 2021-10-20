@@ -10,24 +10,23 @@ void IDecode::Main() {
             continue;
         }
         // 取出
-        XData packData = packs.front();
+        XPacketData packetData = packs.front();
         packs.pop_front();
-        if (this->SendPacket(packData)) {
+        if (this->SendPacket(packetData)) {
             while (!isExist) {
-                XData frameData = RecvFrame();
+                XFrameData frameData = ReadFrame();
                 if (frameData.data == nullptr) {
                     break;
                 }
-                XLOGI("RecvFrame %d", frameData.size);
-                this->Notify(frameData);
+                NotifyValueChanged(frameData);
             }
         }
-        packData.Drop();
+        packetData.Drop();
         packsMutex.unlock();
     }
 }
 
-void IDecode::Update(XData data) {
+void IDecode::Update(XPacketData data) {
     if (data.mediaType != mediaType) {
         return;
     }

@@ -36,32 +36,30 @@ bool FFDemux::Open(const char *uri) {
     }
     this->totalMs = avFormatContext->duration / (AV_TIME_BASE / 1000);
     XLOGI("total ms = %ld", this->totalMs);
-    GetVPara();
-    GetAPara();
     return true;
 }
 
-XData FFDemux::Read() {
+XPacketData FFDemux::ReadPacket() {
     if (avFormatContext == nullptr) {
         return {};
     }
-    XData data;
     AVPacket *avPacket = av_packet_alloc();
+    XPacketData packetData;
     int result = av_read_frame(avFormatContext, avPacket);
     if (result != 0) {
         av_packet_free(&avPacket);
         return {};
     }
-    data.data = reinterpret_cast<unsigned char *>(avPacket);
-    data.size = avPacket->size;
+    packetData.data = reinterpret_cast<unsigned char *>(avPacket);
+    packetData.size = avPacket->size;
     if (avPacket->stream_index == audioStreamIndex) {
-        data.mediaType = MEDIA_TYPE_AUDIO;
+        packetData.mediaType = MEDIA_TYPE_AUDIO;
     } else if (avPacket->stream_index == videoStreamIndex) {
-        data.mediaType = MEDIA_TYPE_VIDEO;
+        packetData.mediaType = MEDIA_TYPE_VIDEO;
     } else {
-        data.mediaType = MEDIA_TYPE_UNKNOWN;
+        packetData.mediaType = MEDIA_TYPE_UNKNOWN;
     }
-    return data;
+    return packetData;
 }
 
 XParameter FFDemux::GetVPara() {

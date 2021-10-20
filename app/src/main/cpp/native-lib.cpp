@@ -7,6 +7,10 @@
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <FFDecode.h>
+#include <XEGL.h>
+#include <XShader.h>
+#include <IVideoView.h>
+#include <GLVideoView.h>
 #include "player/FFDemux.h"
 
 extern "C" {
@@ -680,29 +684,46 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen2(JNIEnv *env, j
     env->ReleaseStringUTFChars(jUrl, path);
 }
 
-class TestOb : public IObserver {
-public:
-    void Update(XData d) {
-        LOGCATI("Test Obs Update data size %d", d.size);
-    }
-};
+IVideoView *view = nullptr;
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen3(JNIEnv *env, jobject thiz) {
     IDemux *demux = new FFDemux();
-    demux->Open("/sdcard/one_piece.mp4");
+    demux->Open("/sdcard/midway.mp4");
     IDecode *videoDecode = new FFDecode();
     videoDecode->Open(demux->GetVPara());
 
-    IDecode *audioDecode = new FFDecode();
-    audioDecode->Open(demux->GetAPara());
+//    IDecode *audioDecode = new FFDecode();
+//    audioDecode->Open(demux->GetAPara());
 
     demux->AddObserver(videoDecode);
-    demux->AddObserver(audioDecode);
+//    demux->AddObserver(audioDecode);
+
+    view = new GLVideoView();
+    videoDecode->AddObserver(view);
 
     demux->Start();
 
     videoDecode->Start();
-    audioDecode->Start();
+//    audioDecode->Start();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeSurfaceCreated(JNIEnv *env,
+                                                                           jobject thiz,
+                                                                           jobject jSurface) {
+    ANativeWindow *aNativeWindow = ANativeWindow_fromSurface(env, jSurface);
+//    XEGL::Get()->Init(aNativeWindow);
+//    XShader shader;
+//    shader.Init();
+    view->SetRender(aNativeWindow);
+
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeSurfaceChanged(JNIEnv *env,
+                                                                           jobject thiz, jint width,
+                                                                           jint height) {
 }

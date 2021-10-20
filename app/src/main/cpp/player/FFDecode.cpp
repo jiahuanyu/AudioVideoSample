@@ -40,7 +40,7 @@ bool FFDecode::Open(XParameter parameter) {
     return true;
 }
 
-bool FFDecode::SendPacket(XData data) {
+bool FFDecode::SendPacket(XPacketData data) {
     if (avCodecContext == nullptr || data.size <= 0 || data.data == nullptr) {
         return false;
     }
@@ -51,7 +51,8 @@ bool FFDecode::SendPacket(XData data) {
     return true;
 }
 
-XData FFDecode::RecvFrame() {
+
+XFrameData FFDecode::ReadFrame() {
     if (avCodecContext == nullptr) {
         return {};
     }
@@ -64,15 +65,25 @@ XData FFDecode::RecvFrame() {
         return {};
     }
     // 解码成功
-    XData data;
+    XFrameData data;
     data.data = reinterpret_cast<unsigned char *>(avFrame);
     if (avCodecContext->codec_type == AVMEDIA_TYPE_VIDEO) {
-        data.size = (avFrame->linesize[0] + avFrame->linesize[1] + avFrame->linesize[2]) *
-                    avFrame->height;
-    } else {
-        data.size =
-                av_get_bytes_per_sample((AVSampleFormat) avFrame->format) * avFrame->nb_samples *
-                avFrame->channels;
+//        data.size = (avFrame->linesize[0] + avFrame->linesize[1] + avFrame->linesize[2]) *
+//                    avFrame->height;
+        data.width = avFrame->width;
+        data.height = avFrame->height;
+    } else if (avCodecContext->codec_type == AVMEDIA_TYPE_AUDIO) {
+//        data.size =
+//                av_get_bytes_per_sample(
+//                        (AVSampleFormat) avFrame->format) * avFrame->nb_samples *
+//                avFrame->channels;
     }
+//    data.datas[0] = new unsigned char[avFrame->width * avFrame->height];
+//    data.datas[1] = new unsigned char[avFrame->width * avFrame->height / 4];
+//    data.datas[2] = new unsigned char[avFrame->width * avFrame->height / 4];
+//    memcpy(data.datas[0], avFrame->data[0], avFrame->width * avFrame->height);
+//    memcpy(data.datas[1], avFrame->data[1], avFrame->width * avFrame->height / 4);
+//    memcpy(data.datas[2], avFrame->data[2], avFrame->width * avFrame->height / 4);
+    memcpy(data.datas, avFrame->data, sizeof(data.datas));
     return data;
 }

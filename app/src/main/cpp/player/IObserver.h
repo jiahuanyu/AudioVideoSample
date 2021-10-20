@@ -2,21 +2,15 @@
 #define IOBSERVER_H
 
 #include "XData.h"
-#include <vector>
-#include <mutex>
 #include "XThread.h"
 
-class IObserver: public XThread {
+// 观察者
+template <class T>
+class IObserver {
 public:
-    virtual void Update(XData data) {}
+    virtual void Update(T value) {
 
-    void AddObserver(IObserver *observer);
-
-    void Notify(XData data);
-
-protected:
-    std::vector<IObserver *> observers;
-    std::mutex mutex;
+    }
 };
 
 

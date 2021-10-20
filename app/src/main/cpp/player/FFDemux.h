@@ -5,6 +5,7 @@
 #include "IDemux.h"
 
 struct AVFormatContext;
+struct AVPacket;
 
 class FFDemux : public IDemux {
 private:
@@ -22,8 +23,9 @@ public:
     virtual XParameter GetAPara();
 
     // 读取一帧数据，数据由调用者清理
-    virtual XData Read();
+    virtual XPacketData ReadPacket();
 
     FFDemux();
 };
+
 #endif

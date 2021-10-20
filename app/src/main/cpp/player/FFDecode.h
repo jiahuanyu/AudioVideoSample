@@ -11,9 +11,9 @@ class FFDecode : public IDecode {
 public:
     virtual bool Open(XParameter parameter);
 
-    virtual bool SendPacket(XData data);
+    virtual bool SendPacket(XPacketData data);
 
-    virtual XData RecvFrame();
+    virtual XFrameData ReadFrame();
 
 protected:
     AVCodecContext *avCodecContext = nullptr;
