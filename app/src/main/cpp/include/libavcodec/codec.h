@@ -122,7 +122,7 @@
 /**
  * Codec supports multithreading through a method other than slice- or
  * frame-level multithreading. Typically this marks wrappers around
- * multithreading-capable external libraries.
+ * multithreading-capable Entry libraries.
  */
 #define AV_CODEC_CAP_OTHER_THREADS       (1 << 15)
 #if FF_API_AUTO_THREADS
@@ -231,8 +231,8 @@ typedef struct AVCodec {
     /**
      * Group name of the codec implementation.
      * This is a short symbolic name of the wrapper backing this codec. A
-     * wrapper uses some kind of external implementation for the codec, such
-     * as an external library, or a codec implementation provided by the OS or
+     * wrapper uses some kind of Entry implementation for the codec, such
+     * as an Entry library, or a codec implementation provided by the OS or
      * the hardware.
      * If this field is NULL, this is a builtin, libavcodec native codec.
      * If non-NULL, this will be the suffix in AVCodec.name in most cases
@@ -302,7 +302,7 @@ typedef struct AVCodec {
     int (*encode2)(struct AVCodecContext *avctx, struct AVPacket *avpkt,
                    const struct AVFrame *frame, int *got_packet_ptr);
     /**
-     * Decode picture or subtitle data.
+     * Decoder picture or subtitle data.
      *
      * @param      avctx          codec context
      * @param      outdata        codec type dependent output struct
@@ -324,7 +324,7 @@ typedef struct AVCodec {
     int (*receive_packet)(struct AVCodecContext *avctx, struct AVPacket *avpkt);
 
     /**
-     * Decode API with decoupled packet/frame dataflow. This function is called
+     * Decoder API with decoupled packet/frame dataflow. This function is called
      * to get one output frame. It should call ff_decode_get_packet() to obtain
      * input data.
      */

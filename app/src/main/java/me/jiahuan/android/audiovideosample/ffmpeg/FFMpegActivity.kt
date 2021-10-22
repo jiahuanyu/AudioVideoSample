@@ -9,17 +9,27 @@ import me.jiahuan.android.audiovideosample.databinding.LayoutActivityFfmpegBindi
  */
 class FFMpegActivity : AppCompatActivity() {
 
-    companion object {
-        init {
-            System.loadLibrary("native-lib")
-        }
-    }
-
     private lateinit var binding: LayoutActivityFfmpegBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = LayoutActivityFfmpegBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.idPlayer.init("/sdcard/1080.mp4")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.idPlayer.start()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.idPlayer.pause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        binding.idPlayer.unInit()
     }
 }

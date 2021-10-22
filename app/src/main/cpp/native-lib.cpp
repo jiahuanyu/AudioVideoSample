@@ -6,12 +6,7 @@
 #include <SLES/OpenSLES_Android.h>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
-#include <FFDecode.h>
-#include <XEGL.h>
-#include <XShader.h>
-#include <IVideoView.h>
-#include <GLVideoView.h>
-#include "player/FFDemux.h"
+#include <VideoRender.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -650,15 +645,15 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen2(JNIEnv *env, j
     buf[2] = new unsigned char[width * height / 4];
 
     for (int i = 0; i < 10000; i++) {
-//        memset(buf[0], i, width * height);
-//        memset(buf[1], i, width * height / 4);
-//        memset(buf[2], i, width * height / 4);
+        memset(buf[0], i, width * height);
+        memset(buf[1], i, width * height / 4);
+        memset(buf[2], i, width * height / 4);
 
-        if (feof(fp) == 0) {
-            fread(buf[0], 1, width * height, fp);
-            fread(buf[1], 1, width * height / 4, fp);
-            fread(buf[2], 1, width * height / 4, fp);
-        }
+//        if (feof(fp) == 0) {
+//            fread(buf[0], 1, width * height, fp);
+//            fread(buf[1], 1, width * height / 4, fp);
+//            fread(buf[2], 1, width * height / 4, fp);
+//        }
 
 
         glActiveTexture(GL_TEXTURE0);
@@ -682,47 +677,4 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen2(JNIEnv *env, j
     }
 
     env->ReleaseStringUTFChars(jUrl, path);
-}
-
-IVideoView *view = nullptr;
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeOpen3(JNIEnv *env, jobject thiz) {
-    FFDemux *demux = new FFDemux();
-    demux->Open("/sdcard/1080.mp4");
-
-    FFDecode *videoDecode = new FFDecode();
-    videoDecode->Open(demux->GetVPara());
-    FFDecode *audioDecode = new FFDecode();
-    audioDecode->Open(demux->GetAPara());
-
-    demux->AddObserver(videoDecode);
-    demux->AddObserver(audioDecode);
-
-    view = new GLVideoView();
-    videoDecode->AddObserver(view);
-
-    demux->Start();
-    videoDecode->Start();
-    audioDecode->Start();
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeSurfaceCreated(JNIEnv *env,
-                                                                           jobject thiz,
-                                                                           jobject jSurface) {
-    ANativeWindow *aNativeWindow = ANativeWindow_fromSurface(env, jSurface);
-//    XEGL::Get()->Init(aNativeWindow);
-//    XShader shader;
-//    shader.Init();
-    view->SetRender(aNativeWindow);
-
-}
-extern "C"
-JNIEXPORT void JNICALL
-Java_me_jiahuan_android_audiovideosample_ffmpeg_XPlay_nativeSurfaceChanged(JNIEnv *env,
-                                                                           jobject thiz, jint width,
-                                                                           jint height) {
 }

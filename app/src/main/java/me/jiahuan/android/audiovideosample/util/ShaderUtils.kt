@@ -47,7 +47,7 @@ object ShaderUtils {
     }
 
     /**
-     * 创建 program
+     * 创建 m_Program
      */
     fun createProgram(vertexSource: String, fragmentSource: String): Int {
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource)

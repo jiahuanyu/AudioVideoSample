@@ -24,7 +24,7 @@
 /**
  * @file
  * @ingroup libavc
- * Libavcodec external API header
+ * Libavcodec Entry API header
  */
 
 #include "libavutil/samplefmt.h"
@@ -368,7 +368,7 @@ typedef struct RcOverride{
 struct AVCodecInternal;
 
 /**
- * main external API structure.
+ * main Entry API structure.
  * New fields can be added to the end with minor version bumps.
  * Removal, reordering and changes to existing fields require a major
  * version bump.
@@ -1448,8 +1448,8 @@ typedef struct AVCodecContext {
      * - decoding: Set by user, otherwise the default is used.
      */
     int thread_type;
-#define FF_THREAD_FRAME   1 ///< Decode more than one frame at once
-#define FF_THREAD_SLICE   2 ///< Decode more than one part of a single frame at once
+#define FF_THREAD_FRAME   1 ///< Decoder more than one frame at once
+#define FF_THREAD_SLICE   2 ///< Decoder more than one part of a single frame at once
 
     /**
      * Which multithreading methods are in use by the codec.
@@ -2502,7 +2502,7 @@ int avcodec_enum_to_chroma_pos(int *xpos, int *ypos, enum AVChromaLocation pos);
 enum AVChromaLocation avcodec_chroma_pos_to_enum(int xpos, int ypos);
 
 /**
- * Decode a subtitle message.
+ * Decoder a subtitle message.
  * Return a negative value on error, otherwise return the number of bytes used.
  * If no subtitle could be decompressed, got_sub_ptr is zero.
  * Otherwise, the subtitle is stored in *sub.

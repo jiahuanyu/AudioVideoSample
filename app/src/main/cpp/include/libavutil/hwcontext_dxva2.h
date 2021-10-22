@@ -51,7 +51,7 @@ typedef struct AVDXVA2FramesContext {
     DWORD               surface_type;
 
     /**
-     * The surface pool. When an external pool is not provided by the caller,
+     * The surface pool. When an Entry pool is not provided by the caller,
      * this will be managed (allocated and filled on init, freed on uninit) by
      * libavutil.
      */

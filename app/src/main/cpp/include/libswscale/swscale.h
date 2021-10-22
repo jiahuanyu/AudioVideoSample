@@ -24,7 +24,7 @@
 /**
  * @file
  * @ingroup libsws
- * external API header
+ * Entry API header
  */
 
 #include <stdint.h>

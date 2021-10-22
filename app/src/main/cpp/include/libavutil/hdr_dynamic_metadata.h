@@ -95,7 +95,7 @@ typedef struct AVHDRPlusColorTransformParams {
 
     /**
      * The x coordinate of the center position of the concentric internal and
-     * external ellipses of the elliptical pixel selector in the processing
+     * Entry ellipses of the elliptical pixel selector in the processing
      * window. The value shall be in the range of 0 to (width of Picture - 1),
      * inclusive and in multiples of 1 pixel.
      */
@@ -103,7 +103,7 @@ typedef struct AVHDRPlusColorTransformParams {
 
     /**
      * The y coordinate of the center position of the concentric internal and
-     * external ellipses of the elliptical pixel selector in the processing
+     * Entry ellipses of the elliptical pixel selector in the processing
      * window. The value shall be in the range of 0 to (height of Picture - 1),
      * inclusive and in multiples of 1 pixel.
      */
@@ -111,7 +111,7 @@ typedef struct AVHDRPlusColorTransformParams {
 
     /**
      * The clockwise rotation angle in degree of arc with respect to the
-     * positive direction of the x-axis of the concentric internal and external
+     * positive direction of the x-axis of the concentric internal and Entry
      * ellipses of the elliptical pixel selector in the processing window. The
      * value shall be in the range of 0 to 180, inclusive and in multiples of 1.
      */
@@ -125,7 +125,7 @@ typedef struct AVHDRPlusColorTransformParams {
     uint16_t semimajor_axis_internal_ellipse;
 
     /**
-     * The semi-major axis value of the external ellipse of the elliptical pixel
+     * The semi-major axis value of the Entry ellipse of the elliptical pixel
      * selector in amount of pixels in the processing window. The value
      * shall not be less than semimajor_axis_internal_ellipse of the current
      * processing window. The value shall be in the range of 1 to 65535,
@@ -134,7 +134,7 @@ typedef struct AVHDRPlusColorTransformParams {
     uint16_t semimajor_axis_external_ellipse;
 
     /**
-     * The semi-minor axis value of the external ellipse of the elliptical pixel
+     * The semi-minor axis value of the Entry ellipse of the elliptical pixel
      * selector in amount of pixels in the processing window. The value shall be
      * in the range of 1 to 65535, inclusive and in multiples of 1 pixel.
      */

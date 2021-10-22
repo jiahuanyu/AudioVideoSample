@@ -9,18 +9,22 @@ set(lib-name native-lib)
 include_directories(
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/util
-        ${CMAKE_SOURCE_DIR}/player)
+        ${CMAKE_SOURCE_DIR}/player
+        ${CMAKE_SOURCE_DIR}/player/decoder
+        ${CMAKE_SOURCE_DIR}/player/render)
 
 link_directories(${jni-libs}/${ANDROID_ABI})
 
 file(GLOB src-files
         ${CMAKE_SOURCE_DIR}/*.cpp
         ${CMAKE_SOURCE_DIR}/util/*.cpp
-        ${CMAKE_SOURCE_DIR}/player/*.cpp)
+        ${CMAKE_SOURCE_DIR}/player/*.cpp
+        ${CMAKE_SOURCE_DIR}/player/decoder/*.cpp
+        ${CMAKE_SOURCE_DIR}/player/render/*.cpp)
 
 add_library(${lib-name}
-             SHARED
-             ${src-files})
+        SHARED
+        ${src-files})
 
 set(third-party-libs
         avformat
@@ -40,6 +44,6 @@ set(native-libs
         z)
 
 target_link_libraries(${lib-name}
-                       ${log-lib}
-                       ${third-party-libs}
-                       ${native-libs})
+        ${log-lib}
+        ${third-party-libs}
+        ${native-libs})

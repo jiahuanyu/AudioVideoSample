@@ -20,7 +20,7 @@
 
 /**
  * @file
- * common internal and external API header
+ * common internal and Entry API header
  */
 
 #ifndef AVUTIL_COMMON_H

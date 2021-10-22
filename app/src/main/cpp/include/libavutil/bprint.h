@@ -160,7 +160,7 @@ struct tm;
 void av_bprint_strftime(AVBPrint *buf, const char *fmt, const struct tm *tm);
 
 /**
- * Allocate bytes in the buffer for external use.
+ * Allocate bytes in the buffer for Entry use.
  *
  * @param[in]  buf          buffer structure
  * @param[in]  size         required size

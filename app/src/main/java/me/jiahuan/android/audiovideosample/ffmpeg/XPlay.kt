@@ -9,12 +9,14 @@ class XPlay @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : SurfaceView(context, attrs), SurfaceHolder.Callback {
     init {
+        System.loadLibrary("native-lib")
+    }
+
+    init {
         holder.addCallback(this)
     }
 
     override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
-        nativeOpen3()
-        nativeSurfaceCreated(surfaceHolder.surface)
     }
 
     override fun surfaceChanged(
@@ -23,7 +25,6 @@ class XPlay @JvmOverloads constructor(
         width: Int,
         height: Int
     ) {
-        nativeSurfaceChanged(width, height)
     }
 
     override fun surfaceDestroyed(surfaceHolder: SurfaceHolder) {
@@ -34,10 +35,4 @@ class XPlay @JvmOverloads constructor(
     private external fun nativeOpenSL()
 
     private external fun nativeOpen2(url: String, surface: Any)
-
-    private external fun nativeOpen3()
-
-    private external fun nativeSurfaceCreated(surface: Any)
-
-    private external fun nativeSurfaceChanged(width: Int, height: Int)
 }

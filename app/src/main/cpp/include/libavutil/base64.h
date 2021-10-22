@@ -30,7 +30,7 @@
  */
 
 /**
- * Decode a base64-encoded string.
+ * Decoder a base64-encoded string.
  *
  * @param out      buffer for decoded data
  * @param in       null-terminated input string
