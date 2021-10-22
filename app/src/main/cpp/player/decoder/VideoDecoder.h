@@ -6,10 +6,19 @@
 
 class VideoDecoder : public BaseDecoder {
 public:
-    VideoDecoder(VideoRender *videoRender,char *url);
+    VideoDecoder(VideoRender *videoRender, char *url);
 
     virtual ~VideoDecoder();
+
+    int GetVideoWidth() const;
+
+    int GetVideoHeight() const;
+
 private:
+    // 渲染视频的宽度
+    int m_VideoWidth = 0;
+    // 渲染视频的高度
+    int m_VideoHeight = 0;
 
     VideoRender *m_VideoRender = nullptr;
 

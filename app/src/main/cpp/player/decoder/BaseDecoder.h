@@ -20,6 +20,12 @@ enum DecoderState {
     STATE_STOP
 };
 
+enum DecoderMsg {
+    MSG_DECODER_READY
+};
+
+typedef void (*MessageCallback)(void *, int, float);
+
 class BaseDecoder {
 public:
     BaseDecoder() = default;
@@ -32,6 +38,8 @@ public:
 
     virtual void Stop();
 
+    virtual void SetMessageCallback(void *context, MessageCallback callback);
+
 protected:
     virtual int Init(const char *url, AVMediaType mediaType);
 
@@ -42,6 +50,12 @@ protected:
     virtual void OnDecoderDone() = 0;
 
     virtual void OnFrameAvailable(AVFrame *frame) = 0;
+
+    AVCodecContext *GetCodecContext();
+
+    void *m_MsgContext = nullptr;
+
+    MessageCallback m_MsgCallback = nullptr;
 
 private:
     std::thread *m_Thread = nullptr;

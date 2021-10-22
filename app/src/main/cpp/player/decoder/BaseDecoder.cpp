@@ -163,7 +163,7 @@ void BaseDecoder::DecodingLoop() {
     for (;;) {
         while (m_DecoderState == STATE_PAUSE) {
             std::unique_lock<std::mutex> lock(m_Mutex);
-            LOGCATE("BaseDecoder::DecodingLoop waiting, m_MediaType=%d", m_MediaType);
+            LOGCATI("BaseDecoder::DecodingLoop waiting, m_MediaType=%d", m_MediaType);
             m_Cond.wait_for(lock, std::chrono::milliseconds(10));
         }
 
@@ -177,7 +177,7 @@ void BaseDecoder::DecodingLoop() {
             m_DecoderState = STATE_PAUSE;
         }
     }
-    LOGCATE("DecoderBase::DecodingLoop end");
+    LOGCATI("DecoderBase::DecodingLoop end");
 }
 
 int BaseDecoder::DecodeOnePacket() {
@@ -209,4 +209,13 @@ int BaseDecoder::DecodeOnePacket() {
     __EXIT:
     av_packet_unref(m_Packet);
     return result;
+}
+
+AVCodecContext *BaseDecoder::GetCodecContext() {
+    return m_AVCodecContext;
+}
+
+void BaseDecoder::SetMessageCallback(void *context, MessageCallback callback) {
+    m_MsgContext = context;
+    m_MsgCallback = callback;
 }
