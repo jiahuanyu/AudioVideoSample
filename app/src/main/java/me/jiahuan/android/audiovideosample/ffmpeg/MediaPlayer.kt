@@ -1,26 +1,27 @@
 package me.jiahuan.android.audiovideosample.ffmpeg
 
 import android.content.Context
+import android.opengl.GLSurfaceView
 import android.util.AttributeSet
 import android.util.Log
-import android.view.SurfaceHolder
-import android.view.SurfaceView
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.opengles.GL10
 
 private const val TAG = "MediaPlayer"
 
 class MediaPlayer @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
-) : SurfaceView(context, attrs), SurfaceHolder.Callback {
+) : GLSurfaceView(context, attrs), GLSurfaceView.Renderer {
 
     // Native MediaPlayer 指针
     private var mNativePlayerHandle: Long = 0
 
-    private var mRatioWidth = 0
-    private var mRatioHeight = 0
 
     init {
         System.loadLibrary("native-lib")
-        holder.addCallback(this)
+        setEGLContextClientVersion(2)
+        setRenderer(this)
+        renderMode = RENDERMODE_WHEN_DIRTY
     }
 
     fun init(uri: String) {
@@ -43,65 +44,41 @@ class MediaPlayer @JvmOverloads constructor(
         nativeStop(mNativePlayerHandle)
     }
 
-    override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
-        nativeSurfaceCreated(mNativePlayerHandle, surfaceHolder.surface)
-    }
-
-    override fun surfaceChanged(
-        surfaceHolder: SurfaceHolder,
-        format: Int,
-        width: Int,
-        height: Int
-    ) {
-    }
-
-    override fun surfaceDestroyed(surfaceHolder: SurfaceHolder) {
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = MeasureSpec.getSize(heightMeasureSpec)
-
-        if (0 == mRatioWidth || 0 == mRatioHeight) {
-            setMeasuredDimension(width, height)
-        } else {
-            if (width < height * mRatioWidth / mRatioHeight) {
-                setMeasuredDimension(width, width * mRatioHeight / mRatioWidth)
-            } else {
-                setMeasuredDimension(height * mRatioWidth / mRatioHeight, height)
-            }
-        }
-    }
-
     // 由 Native 调用
     private fun playerEventCallback(msgType: Int, msgValue: Float) {
         Log.i(TAG, "MediaPlayer playerEventCallback msgType = $msgType, msgValue = $msgValue")
-        setAspectRatio(
-            nativeGetVideoWidth(mNativePlayerHandle),
-            nativeGetVideoHeight(mNativePlayerHandle)
-        )
+        if (msgType == 1) {
+            requestRender()
+        }
     }
 
-    private fun setAspectRatio(width: Int, height: Int) {
-        mRatioWidth = width
-        mRatioHeight = height
-        requestLayout()
+    override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
+        nativeOnSurfaceCreated(mNativePlayerHandle)
+    }
+
+    override fun onSurfaceChanged(p0: GL10, width: Int, height: Int) {
+        Log.i(TAG, "onSurfaceChanged ${Thread.currentThread().name}")
+        nativeOnSurfaceChanged(mNativePlayerHandle, width, height)
+    }
+
+    override fun onDrawFrame(p0: GL10) {
+        Log.i(TAG, "onDrawFrame ${Thread.currentThread().name}")
+        nativeOnDrawFrame(mNativePlayerHandle)
     }
 
     private external fun nativeInit(uri: String): Long
 
     private external fun nativeUnInit(playerHandle: Long)
 
-    private external fun nativeSurfaceCreated(playerHandle: Long, surface: Any)
+    private external fun nativeOnSurfaceCreated(playerHandle: Long)
+
+    private external fun nativeOnSurfaceChanged(playerHandle: Long, width: Int, height: Int)
+
+    private external fun nativeOnDrawFrame(playerHandle: Long)
 
     private external fun nativeStart(playerHandle: Long)
 
     private external fun nativePause(playerHandle: Long)
 
     private external fun nativeStop(playerHandle: Long)
-
-    private external fun nativeGetVideoWidth(playerHandle: Long): Int
-
-    private external fun nativeGetVideoHeight(playerHandle: Long): Int
 }

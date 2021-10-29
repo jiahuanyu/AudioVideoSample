@@ -37,13 +37,13 @@ public:
 
     void Stop();
 
-    void surfaceCreated(JNIEnv *env, jobject jSurface);
+    void OnSurfaceCreated();
+
+    void OnSurfaceChanged(int width, int height);
+
+    void OnDrawFrame();
 
     void UnInit();
-
-    int GetVideoWidth();
-
-    int GetVideoHeight();
 };
 
 

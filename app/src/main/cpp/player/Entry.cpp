@@ -15,13 +15,25 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeInit(JNIEnv *e
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeSurfaceCreated(JNIEnv *env,
-                                                                                 jobject thiz,
-                                                                                 jlong jPlayer_handle,
-                                                                                 jobject jSurface) {
+Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeOnSurfaceCreated(JNIEnv *env,
+                                                                                   jobject thiz,
+                                                                                   jlong jPlayer_handle) {
     if (jPlayer_handle != 0) {
         MediaPlayer *player = reinterpret_cast<MediaPlayer *>(jPlayer_handle);
-        player->surfaceCreated(env, jSurface);
+        player->OnSurfaceCreated();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeOnSurfaceChanged(JNIEnv *env,
+                                                                                   jobject thiz,
+                                                                                   jlong jPlayer_handle,
+                                                                                   jint jWidth,
+                                                                                   jint jHeight) {
+    if (jPlayer_handle != 0) {
+        MediaPlayer *player = reinterpret_cast<MediaPlayer *>(jPlayer_handle);
+        player->OnSurfaceChanged(jWidth, jHeight);
     }
 }
 
@@ -65,27 +77,13 @@ Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeUnInit(JNIEnv 
     }
 }
 
-
 extern "C"
-JNIEXPORT jint JNICALL
-Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeGetVideoWidth(JNIEnv *env,
-                                                                                jobject thiz,
-                                                                                jlong jPlayer_handle) {
+JNIEXPORT void JNICALL
+Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeOnDrawFrame(JNIEnv *env,
+                                                                              jobject thiz,
+                                                                              jlong jPlayer_handle) {
     if (jPlayer_handle != 0) {
         MediaPlayer *player = reinterpret_cast<MediaPlayer *>(jPlayer_handle);
-        return player->GetVideoWidth();
+        player->OnDrawFrame();
     }
-    return 0;
-}
-
-extern "C"
-JNIEXPORT jint JNICALL
-Java_me_jiahuan_android_audiovideosample_ffmpeg_MediaPlayer_nativeGetVideoHeight(JNIEnv *env,
-                                                                                 jobject thiz,
-                                                                                 jlong jPlayer_handle) {
-    if (jPlayer_handle != 0) {
-        MediaPlayer *player = reinterpret_cast<MediaPlayer *>(jPlayer_handle);
-        return player->GetVideoHeight();
-    }
-    return 0;
 }

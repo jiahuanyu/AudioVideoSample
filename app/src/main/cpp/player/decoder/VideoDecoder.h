@@ -10,10 +10,6 @@ public:
 
     virtual ~VideoDecoder();
 
-    int GetVideoWidth() const;
-
-    int GetVideoHeight() const;
-
 private:
     // 渲染视频的宽度
     int m_VideoWidth = 0;

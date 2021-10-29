@@ -21,7 +21,8 @@ enum DecoderState {
 };
 
 enum DecoderMsg {
-    MSG_DECODER_READY
+    MSG_DECODER_READY,
+    MSG_REQUEST_RENDER
 };
 
 typedef void (*MessageCallback)(void *, int, float);

@@ -12,9 +12,21 @@ void MediaPlayer::Init(JNIEnv *jniEnv, jobject obj, char *url) {
     m_VideoDecoder->SetMessageCallback(this, PostMessage);
 }
 
-void MediaPlayer::surfaceCreated(JNIEnv *env, jobject jSurface) {
+void MediaPlayer::OnSurfaceCreated() {
     if (m_VideoRender) {
-        m_VideoRender->surfaceCreated(env, jSurface);
+        m_VideoRender->OnSurfaceCreated();
+    }
+}
+
+void MediaPlayer::OnSurfaceChanged(int width, int height) {
+    if (m_VideoRender) {
+        m_VideoRender->OnSurfaceChanged(width, height);
+    }
+}
+
+void MediaPlayer::OnDrawFrame() {
+    if (m_VideoRender) {
+        m_VideoRender->OnDrawFrame();
     }
 }
 
@@ -54,20 +66,6 @@ void MediaPlayer::UnInit() {
     GetJNIEnv(&isAttach)->DeleteGlobalRef(m_JavaObj);
     if (isAttach)
         GetJavaVM()->DetachCurrentThread();
-}
-
-int MediaPlayer::GetVideoWidth() {
-    if (m_VideoDecoder) {
-        return m_VideoDecoder->GetVideoWidth();
-    }
-    return 0;
-}
-
-int MediaPlayer::GetVideoHeight() {
-    if (m_VideoDecoder) {
-        return m_VideoDecoder->GetVideoHeight();
-    }
-    return 0;
 }
 
 jobject MediaPlayer::GetJavaObj() {
